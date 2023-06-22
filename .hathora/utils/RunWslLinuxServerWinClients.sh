@@ -9,7 +9,7 @@
 # PHOTON FUSION BR CMDS
 # -dedicatedServer
 # -deathmatch
-# -scene GenArea3 # Req'd?
+# -scene GenArea2 # 2 == smallest
 #
 # More @ https://doc.photonengine.com/fusion/current/game-samples/fusion-br/quickstart
 ##################################################################################
@@ -27,5 +27,5 @@ exe_name="Hathora-Unity-LinuxServer.x86_64"
 path_to_linux_server="../../Build-Server/$exe_name"
 echo "Starting $exe_name instance @ '$path_to_linux_server' ..."
 
-linux_cmd="$path_to_linux_server -batchmode -nographics -dedicatedServer -deathmatch -deathmatch -maxPlayers 5"
+linux_cmd="$path_to_linux_server -batchmode -nographics -dedicatedServer -deathmatch -deathmatch -maxPlayers 5 -scene GenArea2 -region us -serverName LocalHeadlessServer"
 $linux_cmd
