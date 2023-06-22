@@ -46,10 +46,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _defaultConfiguration:
     GameplayType: 1
-    GameMode: 4
+    GameMode: 5
     ServerName: Standalone Game
     MaxPlayers: 200
     ExtraPeers: 0
     Region: 
     SessionName: 
     CustomLobby: 
+    IPAddress: 127.0.0.1
+    Port: 7777
+    Multiplay: 0
+    QueryProtocol: 0
+    Matchmaking: 0
+    Backfill: 0

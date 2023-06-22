@@ -328,7 +328,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-45730
+  m_Name: pb_Mesh-204440
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -2723,7 +2723,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-42482
+  m_Name: pb_Mesh-205698
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -5582,6 +5582,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_MoveRepeatDelay: 0.5
   m_MoveRepeatRate: 0.1
   m_XRTrackingOrigin: {fileID: 0}
@@ -5598,6 +5599,7 @@ MonoBehaviour:
   m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
 --- !u!1 &1530746854
 GameObject:
   m_ObjectHideFlags: 0
@@ -6735,6 +6737,8 @@ MonoBehaviour:
     RotBlendStart: 0.1
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
+  UseLegacySharedModeInterpolation: 0
+  TargetInterpolationDelay: 0.03
 --- !u!114 &1712996070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9666,10 +9670,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 5753835328593834074, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -58.017822
-      objectReference: {fileID: 0}
     - target: {fileID: 6820614581923546004, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -9717,10 +9717,6 @@ PrefabInstance:
     - target: {fileID: 6820614581923546006, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: m_Name
       value: StandaloneManager
-      objectReference: {fileID: 0}
-    - target: {fileID: 6820614581923546006, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
