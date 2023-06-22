@@ -14,23 +14,18 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
     {
         protected Configuration HathoraSdkConfig { get; private set; }
         protected HathoraClientConfig HathoraClientConfig { get; private set; }
-        protected NetSession NetSession { get; private set; }
 
 
         /// <summary>
         /// Init anytime. Client calls use V1 auth token.
         /// </summary>
         /// <param name="_hathoraClientConfig">Find via Unity editor top menu: Hathora >> Find Configs</param>
-        /// <param name="_netSession">Client (not player) session instance for updating cache.</param>
         /// <param name="_hathoraSdkConfig">SDKConfig that we pass to Hathora API calls</param>
         public virtual void Init(
             HathoraClientConfig _hathoraClientConfig,
-            NetSession _netSession,
             Configuration _hathoraSdkConfig = null)
         {
             this.HathoraClientConfig = _hathoraClientConfig;
-            this.NetSession = _netSession;
-            
             this.HathoraSdkConfig = _hathoraSdkConfig ?? 
                 GenerateSdkConfig(_hathoraClientConfig);
         }
@@ -42,7 +37,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
         {
             Debug.LogError($"[{_className}.{_funcName}] API Error: " +
                 $"{_apiException.ErrorCode} {_apiException.ErrorContent} | {_apiException.Message}");
-            
+
             throw _apiException;
         }
 

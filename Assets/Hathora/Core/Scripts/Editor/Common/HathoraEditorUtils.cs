@@ -58,6 +58,10 @@ namespace Hathora.Core.Scripts.Editor.Common
         public const string HATHORA_GRAY_TRANSPARENT_COLOR_HEX = "#919191CC"; // 60% opacity
         public const string HATHORA_LINK_COLOR_HEX = "#02FE57";
         
+        /// <summary>(!) Be sure to pair with an ending /color tag</summary>
+        public static string StartGreenColor => 
+            $"<color={HATHORA_GREEN_COLOR_HEX}>";
+        
         public static GUIStyle GetRichFoldoutHeaderStyle() => new(EditorStyles.foldoutHeader) { richText = true };
         public static readonly RectOffset DefaultPadding = new(left: 1, right: 1, top: 0, bottom: 0);
         

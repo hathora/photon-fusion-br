@@ -7,6 +7,7 @@ using Hathora.Core.Scripts.Editor.Common;
 using Hathora.Core.Scripts.Runtime.Common.Extensions;
 using Hathora.Core.Scripts.Runtime.Server;
 using UnityEditor;
+using UnityEditor.Graphs;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -157,11 +158,23 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle
             GUI.FocusControl("Dummy");
         }
         
-        protected void InsertHorizontalLine(float thickness, Color color, int _space = 0)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="_thickness"></param>
+        /// <param name="_color">Default == Color.gray</param>
+        /// <param name="_space"></param>
+        protected void InsertHorizontalLine(
+            float _thickness = 1.5f,
+            Color _color = default, 
+            int _space = 0)
         {
-            Rect lineRect = EditorGUILayout.GetControlRect(hasLabel: false, thickness);
-            lineRect.height = thickness;
-            EditorGUI.DrawRect(lineRect, color);
+            if (_color == default)
+                _color = Color.gray;
+            
+            Rect lineRect = EditorGUILayout.GetControlRect(hasLabel: false, _thickness);
+            lineRect.height = _thickness;
+            EditorGUI.DrawRect(lineRect, _color);
             
             if (_space > 0)
                 EditorGUILayout.Space(_space);
@@ -484,6 +497,44 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle
             return inputStr;
         }
         
+        /// <summary>
+        /// {label} {tooltip} {checkbox}
+        /// </summary>
+        /// <param name="_labelStr"></param>
+        /// <param name="_tooltip"></param>
+        /// <param name="_val"></param>
+        /// <param name="_alignCheckbox"></param>
+        /// <returns>isChecked</returns>
+        protected bool InsertHorizLabeledCheckboxField(
+            string _labelStr,
+            string _tooltip,
+            bool _val,
+            GuiAlign _alignCheckbox = GuiAlign.Stretched)
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            InsertLabel(_labelStr, _tooltip);
+    
+            if (_alignCheckbox == GuiAlign.SmallRight)
+                InsertFlexSpace();
+
+            float maxToggleWidth = _alignCheckbox == GuiAlign.Stretched
+                ? -1f
+                : DEFAULT_MAX_FIELD_WIDTH;
+    
+            // USER INPUT >>
+            bool isChecked = GUILayout.Toggle(
+                _val, 
+                text: "", 
+                getDefaultInputLayoutOpts(_maxWidth: maxToggleWidth));
+    
+            if (_alignCheckbox == GuiAlign.SmallLeft)
+                InsertFlexSpace();
+
+            EditorGUILayout.EndHorizontal();
+            return isChecked;
+        }
+        
         public enum EnumListOpts
         {
             AsIs,
@@ -699,7 +750,8 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle
         
         protected void SaveConfigChange(string _logKeyName, string _logKeyVal)
          {
-             Debug.Log($"[HathoraConfigUIBase] Set new ServerConfig vals for: `{_logKeyName}` to: `{_logKeyVal}`");
+             Debug.Log($"[HathoraConfigUIBase] Set new ServerConfig vals for: " +
+                 $"`{_logKeyName}` to: `{_logKeyVal}`");
              
              SerializedConfig.ApplyModifiedProperties();
              EditorUtility.SetDirty(ServerConfig); // Mark the object as dirty

@@ -1,13 +1,9 @@
 // Created by dylan@hathora.dev
 
 using System;
-using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Hathora.Core.Scripts.Editor.Common;
-using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Hathora.Core.Scripts.Runtime.Server;
 using Hathora.Core.Scripts.Runtime.Server.Models;
 using UnityEditor;
@@ -22,6 +18,7 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth
         #region Vars
         // Foldouts
         private bool isServerBuildFoldout;
+        private CancellationTokenSource cancelBuildTokenSrc;
         #endregion // Vars
 
 
@@ -71,6 +68,7 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth
         {
             insertBuildDirNameHorizGroup();
             insertBuildFileExeNameHorizGroup();
+            insertOverwriteDockerfileToggleHorizGroup();
 
             InsertSpace2x();
             
@@ -82,6 +80,24 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth
 
             insertGenerateServerBuildBtn(enableBuildBtn); // !await
             insertOpenGeneratedDockerfileLinkLabel();
+        }
+
+        private void insertOverwriteDockerfileToggleHorizGroup()
+        {
+            bool overwriteDockerfile = ServerConfig.LinuxHathoraAutoBuildOpts.OverwriteDockerfile;
+            
+            bool inputBool = base.InsertHorizLabeledCheckboxField(
+                _labelStr: "Overwrite Dockerfile", 
+                _tooltip: "If you have edited the generated Dockerfile or need to use a " +
+                    "custom Dockerfile, this should be set to 'false'\n\nDefault: true",
+                _val: overwriteDockerfile,
+                _alignCheckbox: GuiAlign.SmallRight);
+            
+            bool isChanged = inputBool != overwriteDockerfile;
+            if (isChanged)
+                onOverwriteDockerfileChanged(inputBool);
+            
+            InsertSpace1x();
         }
 
         /// <summary>Only if exists. (!) RESOURCE INTENSIVE</summary>
@@ -224,17 +240,28 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth
                 nameof(ServerConfig.LinuxHathoraAutoBuildOpts.ServerBuildExeName), 
                 _inputStr);
         }
+        
+        private void onOverwriteDockerfileChanged(bool _inputBool)
+        {
+            ServerConfig.LinuxHathoraAutoBuildOpts.OverwriteDockerfile = _inputBool;
+            
+            SaveConfigChange(
+                nameof(ServerConfig.LinuxHathoraAutoBuildOpts.OverwriteDockerfile), 
+                _inputBool.ToString().ToLowerInvariant());
+        }
 
         private void OnGenerateServerBuildBtnClick() =>
-            GenerateServerBuildAsync(); // !await
+            _ = generateServerBuildAsync(); // !await
 
-        public async Task<BuildReport> GenerateServerBuildAsync()
+        private async Task<BuildReport> generateServerBuildAsync()
         {
             // TODO: Get from ServerConfig (for devs that have a custom Dockerfile they don't want overwritten each build)
             const bool overwriteExistingDockerfile = true;
 
             // Build headless Linux executable
-            CancellationTokenSource cancelTokenSrc = new();
+            cancelBuildTokenSrc = new CancellationTokenSource(TimeSpan.FromMinutes(
+                HathoraServerBuild.DEPLOY_TIMEOUT_MINS));
+            
             BuildReport buildReport = null;
 
             try
@@ -242,8 +269,7 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth
                 // +Appends strb logs
                 buildReport = await HathoraServerBuild.BuildHathoraLinuxServer(
                     ServerConfig,
-                    overwriteExistingDockerfile, // TODO: 
-                    cancelTokenSrc.Token);
+                    cancelBuildTokenSrc.Token);
             }
             catch (TaskCanceledException)
             {
@@ -255,8 +281,9 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth
             }
             catch (Exception e)
             {
-                Debug.LogError($"[HathoraConfigPostAuthBodyBuilderUI.GenerateServerBuildAsync] " +
+                Debug.LogError($"[HathoraConfigPostAuthBodyBuilderUI.generateServerBuildAsync] " +
                     $"Error: {e}");
+                
                 ServerConfig.LinuxHathoraAutoBuildOpts.LastBuildLogsStrb
                     .AppendLine()
                     .AppendLine("** BUILD ERROR BELOW **")

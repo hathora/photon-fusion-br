@@ -74,8 +74,8 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
         /// <param name="_buildId"></param>
         /// <param name="_pathToTarGzBuildFile">Ensure path is normalized</param>
         /// <param name="_cancelToken"></param>
-        /// <returns>Returns streamLogs on success</returns>
-        public async Task<string> RunCloudBuildAsync(
+        /// <returns>Returns streamLogs (List of chunks) on success</returns>
+        public async Task<List<string>> RunCloudBuildAsync(
             double _buildId, 
             string _pathToTarGzBuildFile,
             CancellationToken _cancelToken = default)
@@ -105,32 +105,36 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
                 "to know if success, call buildApi.RunBuild");
 
             // (!) Unity, by default, truncates logs to 1k chars (including callstack).
-            string cloudRunBuildResultLogsStr = Encoding.UTF8.GetString(cloudRunBuildResultLogsStream);
-            onRunCloudBuildDone(cloudRunBuildResultLogsStr);
+            string encodedLogs = Encoding.UTF8.GetString(cloudRunBuildResultLogsStream);
+            List<string> logChunks = onRunCloudBuildDone(encodedLogs);
             
-            return cloudRunBuildResultLogsStr;  // streamLogs 
+            return logChunks;  // streamLogs 
         }
-
+        
         /// <summary>
         /// DONE - not necessarily success. Log stream every 500 lines
         /// (!) Unity, by default, truncates logs to 1k chars (including callstack).
         /// </summary>
         /// <param name="_cloudRunBuildResultLogsStr"></param>
-        private static void onRunCloudBuildDone(string _cloudRunBuildResultLogsStr)
+        /// <returns>List of log chunks</returns>
+        private static List<string> onRunCloudBuildDone(string _cloudRunBuildResultLogsStr)
         {
             // Split string into lines
-            string[] lines = _cloudRunBuildResultLogsStr.Split(new[] 
+            string[] linesArr = _cloudRunBuildResultLogsStr.Split(new[] 
                 { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            List<string> lines = new (linesArr);
 
             // Group lines into chunks of 500
             const int chunkSize = 500;
-            for (int i = 0; i < lines.Length; i += chunkSize)
+            for (int i = 0; i < lines.Count; i += chunkSize)
             {
                 IEnumerable<string> chunk = lines.Skip(i).Take(chunkSize);
                 string chunkStr = string.Join("\n", chunk);
                 Debug.Log($"[HathoraServerBuildApi.onRunCloudBuildDone] result == chunk starting at line {i}: " +
                     $"\n<color=yellow>{chunkStr}</color>");
             }
+
+            return lines;
         }
 
         /// <summary>

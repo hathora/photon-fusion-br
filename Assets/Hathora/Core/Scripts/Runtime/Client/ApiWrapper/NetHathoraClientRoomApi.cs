@@ -14,6 +14,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
     /// <summary>
     /// * Call Init() to pass UserConfig/instances.
     /// * Does not handle UI.
+    /// * Does not handle Session caching.
     /// </summary>
     public class NetHathoraClientRoomApi : NetHathoraClientApiBase
     {
@@ -22,24 +23,22 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
         /// <summary>
         /// </summary>
         /// <param name="_hathoraClientConfig"></param>
-        /// <param name="_netSession"></param>
         /// <param name="_hathoraSdkConfig">
         /// Passed along to base for API calls as `HathoraSdkConfig`; potentially null in child.
         /// </param>
         public override void Init(
             HathoraClientConfig _hathoraClientConfig, 
-            NetSession _netSession,
             Configuration _hathoraSdkConfig = null)
         {
             Debug.Log("[NetHathoraClientRoomApi] Initializing API...");
-            base.Init(_hathoraClientConfig, _netSession, _hathoraSdkConfig);
+            base.Init(_hathoraClientConfig, _hathoraSdkConfig);
             this.roomApi = new RoomV2Api(base.HathoraSdkConfig);
         }
 
 
         #region Client Room Async Hathora SDK Calls
         /// <summary>
-        /// Gets connection info, like ip:port. Caches ConnectionInfo in NetSession.
+        /// Gets connection info, like ip:port.
         /// (!) We'll poll until we have an `Active` Status: Be sure to await!
         /// </summary>
         /// <param name="roomId">Get this from NetHathoraClientLobbyApi join/create</param>
@@ -98,7 +97,6 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
                 $"(after {pollSecondsTicked}s polling): <color=yellow>" +
                 $"connectionInfoResponse: {connectionInfoResponse.ToJson()}</color>");
 
-            NetSession.ServerConnectionInfo = connectionInfoResponse;
             return connectionInfoResponse;
         }
         #endregion // Client Room Async Hathora SDK Calls

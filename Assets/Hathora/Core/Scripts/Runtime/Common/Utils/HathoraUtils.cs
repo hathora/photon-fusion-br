@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using UnityEngine;
 using Application = UnityEngine.Application;
 
@@ -45,6 +46,49 @@ namespace Hathora.Core.Scripts.Runtime.Common.Utils
             return dirtyPathToUnityProjRoot == null 
                 ? null 
                 : NormalizePath(dirtyPathToUnityProjRoot);
+        }
+
+        /// <summary>Returns null on null || MinValue</summary>
+        public static string GetFriendlyDateTimeShortStr(DateTime? _dateTime)
+        {
+            if (_dateTime == null || _dateTime == DateTime.MinValue)
+                return null;
+
+            return $"{_dateTime.Value.ToShortDateString()} {_dateTime.Value.ToShortTimeString()}";
+        }
+
+        /// <summary>Returns null on null || MinValue</summary>
+        public static string GetFriendlyDateTimeDiff(
+            TimeSpan _duration, 
+            bool _exclude0)
+        {
+            int totalHours = (int)_duration.TotalHours;
+            int totalMinutes = (int)_duration.TotalMinutes % 60;
+            int totalSeconds = (int)_duration.TotalSeconds % 60;
+            
+            if (totalHours > 0 || !_exclude0)
+                return $"{totalHours}h:{totalMinutes}m:{totalSeconds}s";
+            
+            return totalMinutes > 0 
+                ? $"{totalMinutes}m:{totalSeconds}s" 
+                : $"{totalSeconds}s";
+        }
+
+
+        /// <summary>
+        /// </summary>
+        /// <param name="_startTime"></param>
+        /// <param name="_endTime"></param>
+        /// <param name="exclude0">If 0, </param>
+        /// <returns>hh:mm:ss</returns>
+        public static string GetFriendlyDateTimeDiff(
+            DateTime _startTime, 
+            DateTime _endTime,
+            bool exclude0)
+        {
+            TimeSpan duration = _endTime - _startTime;
+
+            return GetFriendlyDateTimeDiff(duration, exclude0);
         }
     }
 }

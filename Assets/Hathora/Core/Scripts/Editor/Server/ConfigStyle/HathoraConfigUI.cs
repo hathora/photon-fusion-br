@@ -127,7 +127,7 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle
         //     EditorGUILayout.Space(10f);
         //
         //     EditorGUILayout.BeginVertical(GUI.skin.box);
-        //     GUILayout.Label($"<color={HathoraEditorUtils.HATHORA_GREEN_COLOR_HEX}>" +
+        //     GUILayout.Label($"{HathoraEditorUtils.StartHathoraGreenColor}" +
         //         "Customize via `Linux Auto Build Opts`</color>", CenterAlignLabelStyle);
         //     insertBuildBtn(_serverConfig);
         //     EditorGUILayout.EndVertical();
@@ -135,7 +135,7 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle
         //     EditorGUILayout.Space(10f);
         //
         //     EditorGUILayout.BeginVertical(GUI.skin.box);
-        //     GUILayout.Label($"<color={HathoraEditorUtils.HATHORA_GREEN_COLOR_HEX}>" +
+        //     GUILayout.Label($"{HathoraEditorUtils.StartHathoraGreenColor}" +
         //         "Customize via `Hathora Deploy Opts`</color>", CenterAlignLabelStyle);
         //     insertHathoraDeployBtn(_serverConfig);
         //     EditorGUILayout.EndVertical();

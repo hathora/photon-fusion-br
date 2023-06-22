@@ -198,7 +198,7 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth
 
         private async Task insertLoginToHathoraConsoleBtn()
         {
-            string btnLabelStr = $"<color={HathoraEditorUtils.HATHORA_GREEN_COLOR_HEX}>[Logged In]</color> " +
+            string btnLabelStr = $"{HathoraEditorUtils.StartGreenColor}[Logged In]</color> " +
                 $"Log in with another account";
             
             // USER INPUT >>

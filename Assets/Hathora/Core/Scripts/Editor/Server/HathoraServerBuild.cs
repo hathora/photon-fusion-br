@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Hathora.Core.Scripts.Editor.Common;
+using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Hathora.Core.Scripts.Runtime.Server;
 using Hathora.Core.Scripts.Runtime.Server.Models;
 using UnityEditor;
@@ -21,29 +23,39 @@ namespace Hathora.Core.Scripts.Editor.Server
     public static class HathoraServerBuild
     {
         /// <summary>
+        /// This needs to be a massive timeout range since some builds will be huge. 
+        /// However, we still do need *a* timeout to prevent mem leaks from Unity weirdness.
+        /// </summary>
+        public const int DEPLOY_TIMEOUT_MINS = 60 * 3; // 3 hrs 
+        
+        /// <summary>
         /// Builds with HathoraServerConfig opts.
         /// </summary>
         /// <param name="_serverConfig">Find via menu `Hathora/Find Server Config(s)`</param>
-        /// <param name="_overwriteExistingDockerfile">
-        /// Some devs have a custom Dockerfile and don't want a new autogen
-        /// </param>
         /// <param name="_cancelToken">This won't cancel the build itself, but things around it.</param>
         /// <returns>isSuccess</returns>
         public static async Task<BuildReport> BuildHathoraLinuxServer(
             HathoraServerConfig _serverConfig,
-            bool _overwriteExistingDockerfile,
             CancellationToken _cancelToken = default)
         {
+            string logPrefix = $"[{nameof(HathoraServerBuild)}.{nameof(BuildHathoraLinuxServer)}]";
+
+            // Wipe the Deploy logs for the session to prevent confusion
+            _serverConfig.HathoraDeployOpts.LastDeployLogsStrb.Clear();
+            
             // Throughout this process, we'll lose focus on the config object.
             UnityEngine.Object previousSelection = Selection.activeObject; // Preserve focus - restore at end
+
+            HathoraAutoBuildOpts buildOpts = _serverConfig.LinuxHathoraAutoBuildOpts; // We'll use this a lot
             
             // Prep logs cache
-            _serverConfig.LinuxHathoraAutoBuildOpts.LastBuildReport = null;
-            StringBuilder strb = _serverConfig.LinuxHathoraAutoBuildOpts.LastBuildLogsStrb;
-            strb.Clear();
-            strb.AppendLine("Preparing server build...");
-            strb.AppendLine($"overwriteExistingDockerfile? {_overwriteExistingDockerfile}");
-            strb.AppendLine();
+            buildOpts.LastBuildReport = null;
+            StringBuilder strb = buildOpts.LastBuildLogsStrb;
+            strb.Clear()
+                .AppendLine(HathoraUtils.GetFriendlyDateTimeShortStr(DateTime.Now))
+                .AppendLine("Preparing local server build...")
+                .AppendLine($"overwriteExistingDockerfile? {buildOpts.OverwriteDockerfile}")
+                .AppendLine();
             
             // Set your build options
             HathoraServerPaths configPaths = new(_serverConfig);
@@ -59,6 +71,7 @@ namespace Hathora.Core.Scripts.Editor.Server
                 _serverConfig,
                 configPaths.PathToBuildExe);
 
+            // ----------------
             // Build the server
             strb.AppendLine("BUILDING now (this may take a while), with opts:")
                 .AppendLine("```")
@@ -69,13 +82,26 @@ namespace Hathora.Core.Scripts.Editor.Server
             BuildReport buildReport = BuildPipeline.BuildPlayer(buildPlayerOptions);
             _cancelToken.ThrowIfCancellationRequested();
             
+            // Did we fail? 
+            string resultStr = Enum.GetName(typeof(BuildResult), buildReport.summary.result);
+            if (buildReport.summary.result != BuildResult.Succeeded)
+            {
+                strb.AppendLine($"**BUILD FAILED: {resultStr}**");
+                
+                Selection.activeObject = previousSelection; // Restore focus
+                return buildReport; // fail
+            }
+            
+            strb.AppendLine($"**BUILD SUCCESS: {resultStr}**");
+            
+            // ----------------
             // Generate the Dockerfile to `.hathora/`: Paths will be different for each collaborator
-            bool genDockerfile = _overwriteExistingDockerfile || !CheckIfDockerfileExists(configPaths);
+            bool existingDockerfileExists = CheckIfDockerfileExists(configPaths);
+            bool genDockerfile = buildOpts.OverwriteDockerfile || !existingDockerfileExists;
             if (genDockerfile)
             {
                 strb.AppendLine($"Generating Dockerfile to `{configPaths.PathToDotHathoraDockerfile}` ...");
-                Debug.Log("[HathoraServerBuild.BuildHathoraLinuxServer] " +
-                    "Generating new Dockerfile (if exists: overwriting)...");
+                Debug.Log($"{logPrefix} Generating new Dockerfile (if exists: overwriting)...");
                 
                 string dockerFileContent = HathoraDocker.GenerateDockerFileStr(configPaths);
 
@@ -89,14 +115,13 @@ namespace Hathora.Core.Scripts.Editor.Server
                     dockerFileContent,
                     _cancelToken);    
             }
-
-            // Did we fail?
-            if (buildReport.summary.result != BuildResult.Succeeded)
+            else if (!buildOpts.OverwriteDockerfile)
             {
-                Selection.activeObject = previousSelection; // Restore focus
-                return buildReport; // fail
+                Debug.LogWarning($"{logPrefix} !buildOpts.OverwriteDockerfile: Leaving Dockerfile" +
+                    "alone (to !overwrite customizations) at risk of desync, if any ServerConfig opts have changed.");
             }
 
+            // ----------------
             // Open the build directory - this will lose focus of the inspector
             // TODO: Play a small, subtle chime sfx?
             strb.AppendLine("Opening build dir ...");
@@ -107,6 +132,7 @@ namespace Hathora.Core.Scripts.Editor.Server
             cacheFinishedBuildReportLogs(_serverConfig, buildReport);
 
             Selection.activeObject = previousSelection; // Restore focus
+            
             return buildReport;
         }
 
@@ -129,12 +155,21 @@ namespace Hathora.Core.Scripts.Editor.Server
             _serverConfig.LinuxHathoraAutoBuildOpts.LastBuildLogsStrb
                 .AppendLine($"result: {Enum.GetName(typeof(BuildResult), _buildReport.summary.result)}")
                 .AppendLine($"totalSize: {_buildReport.summary.totalSize / (1024 * 1024)}MB")
-                .AppendLine($"totalTime: {totalTime.Minutes} mins, {totalTime.Seconds} secs")
                 .AppendLine($"totalWarnings: {_buildReport.summary.totalWarnings.ToString()}")
                 .AppendLine($"totalErrors: {_buildReport.summary.totalErrors.ToString()}")
                 .AppendLine()
-                .AppendLine("BUILD DONE.")
-                .AppendLine();
+                .Append($"{HathoraEditorUtils.StartGreenColor}Completed</color> ")
+                .Append(HathoraUtils.GetFriendlyDateTimeShortStr(DateTime.Now)) // "{date} {time}"
+                .Append(" (in ")
+                .Append(HathoraUtils.GetFriendlyDateTimeDiff(totalTime, _exclude0: true)) // "{hh}h:{mm}m:{ss}s"; strips 0
+                .AppendLine(")")
+                .AppendLine("BUILD DONE");
+            // #########################################################
+            // {result list}
+            //
+            // {green}Completed{/green} {date} {time} (in {hh}h:{mm}m:{ss}s)
+            // BUILD DONE
+            // #########################################################
         }
 
         /// <summary></summary>
