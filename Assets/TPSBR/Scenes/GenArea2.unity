@@ -710,8 +710,20 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.Port
+      value: 52029
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: _defaultConfiguration.IPAddress
-      value: 127.0.0.1
+      value: 52.223.24.56
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.ServerName
+      value: DECOYSERVER
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.SessionName
+      value: hathoraDeployedServer
       objectReference: {fileID: 0}
     - target: {fileID: 6820614581923546004, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: m_RootOrder

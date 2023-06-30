@@ -468,6 +468,7 @@ public class NetworkDebugStart : Fusion.Behaviour {
         Debug.Log($"Server NetworkRunner '{name}' started.");
 #endif
       });
+      Log.Info($"Server NetworkRunner '{name}' started.");
 
       while(serverTask.IsCompleted == false) {
         yield return new WaitForSeconds(1f);

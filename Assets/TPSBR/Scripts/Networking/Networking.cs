@@ -11,7 +11,12 @@ using UnityEngine.SceneManagement;
 using Fusion;
 using Fusion.Plugin;
 using Fusion.Sockets;
-
+using Hathora.Cloud.Sdk.Api;
+using Hathora.Cloud.Sdk.Model;
+using Hathora.Core.Scripts.Runtime.Client.ApiWrapper;
+using Newtonsoft.Json;
+using UnityEngine.Networking;
+using Application = UnityEngine.Application;
 using UnityScene = UnityEngine.SceneManagement.Scene;
 
 namespace TPSBR
@@ -170,7 +175,7 @@ namespace TPSBR
 
 		// PRIVATE MEMBERS
 
-		public void UpdateCurrentSession()
+		public async void UpdateCurrentSession()
 		{
 			if (_currentSession == null)
 			{
@@ -306,14 +311,29 @@ namespace TPSBR
 			if (peer.GameMode == GameMode.Server || peer.GameMode == GameMode.Host)
 			{
 				startGameArgs.SessionProperties = CreateSessionProperties(peer.Request);
+				
+				// TODO: Use HATHORA_PROCESS_ID to call ProcessesV1.GetProcessInfo()
+				//  This should replace the hard-coded IP address and HATHORA_PORT below
+				string HATHORA_PROCESS_ID = Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
+				
+				string HATHORA_PORT = Environment.GetEnvironmentVariable("HATHORA_PORT");
+				Log($"Server Start IP&Port: 52.223.24.56: " + HATHORA_PORT);
+				startGameArgs.Address = NetAddress.Any(7777); // This should be mapped to `-port` arg passed in Dockerfile
+				
+				// IP: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
+				//   (will need to convert hostname to ip) - maybe this: https://stackoverflow.com/questions/13248971/resolve-hostname-to-ip
+				// PORT: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
+				startGameArgs.CustomPublicAddress = NetAddress.CreateFromIpPort("52.223.24.56", ushort.Parse(HATHORA_PORT));
 			} 
 
 			if (peer.Request.IPAddress.HasValue() == true)
 			{
+				Log($"peer request IP&Port: " + peer.Request.IPAddress + " " + peer.Request.Port);
 				startGameArgs.Address = NetAddress.CreateFromIpPort(peer.Request.IPAddress, peer.Request.Port);
 			}
 			else if (peer.Request.Port > 0)
 			{
+				Log($"peer request port: " + peer.Request.Port);
 				startGameArgs.Address = NetAddress.Any(peer.Request.Port);
 			}
 
@@ -326,7 +346,8 @@ namespace TPSBR
 
 				if (Time.realtimeSinceStartup >= limitTime)
 				{
-					Debug.LogError($"{peerName} start timeout! IsCompleted: {startGameTask.IsCompleted} IsCanceled: {startGameTask.IsCanceled} IsFaulted: {startGameTask.IsFaulted}");
+					Debug.LogError(
+						$"{peerName} start timeout! IsCompleted: {startGameTask.IsCompleted} IsCanceled: {startGameTask.IsCanceled} IsFaulted: {startGameTask.IsFaulted}");
 					break;
 				}
 
@@ -338,7 +359,8 @@ namespace TPSBR
 				}
 			}
 
-			if (startGameTask.IsCanceled == true || startGameTask.IsFaulted == true || startGameTask.IsCompleted == false)
+			if (startGameTask.IsCanceled == true || startGameTask.IsFaulted == true ||
+			    startGameTask.IsCompleted == false)
 			{
 				Debug.LogError($"{peerName} failed to start!");
 
@@ -390,7 +412,8 @@ namespace TPSBR
 
 				if (Time.realtimeSinceStartup >= limitTime)
 				{
-					Debug.LogError($"{peerName} start timeout! IsCloudReady: {runner.IsCloudReady} IsRunning: {runner.IsRunning}");
+					Debug.LogError(
+						$"{peerName} start timeout! IsCloudReady: {runner.IsCloudReady} IsRunning: {runner.IsRunning}");
 
 					Log($"Starting DisconnectPeerCoroutine() - Peer {peer.ID}");
 					yield return DisconnectPeerCoroutine(peer);
@@ -420,7 +443,8 @@ namespace TPSBR
 				}
 			}
 
-			Debug.LogWarning($"{peerName} started on {runner.Simulation.GetLocalAddress()} in {(Time.realtimeSinceStartup - baseTime):0.00}s");
+			Debug.LogWarning(
+				$"{peerName} started on {runner.Simulation.GetLocalAddress()} in {(Time.realtimeSinceStartup - baseTime):0.00}s");
 
 			peer.LoadedScene = runner.SimulationUnityScene;
 
@@ -456,9 +480,9 @@ namespace TPSBR
 			scene.PrepareContext();
 
 			var sceneContext = scene.Context;
-			sceneContext.IsVisible  = peer.ID == 0;
-			sceneContext.HasInput   = peer.ID == 0;
-			sceneContext.Runner     = peer.Runner;
+			sceneContext.IsVisible = peer.ID == 0;
+			sceneContext.HasInput = peer.ID == 0;
+			sceneContext.Runner = peer.Runner;
 			sceneContext.PeerUserID = peer.UserID;
 
 			peer.Context = sceneContext;
@@ -488,7 +512,8 @@ namespace TPSBR
 				if (_currentSession.ConnectionRequested == false)
 				{
 					// Stop requested by user
-					Log($"Starting DisconnectPeerCoroutine() - Connection is not requested anymore - Peer {peer.ID}");
+					Log(
+						$"Starting DisconnectPeerCoroutine() - Connection is not requested anymore - Peer {peer.ID}");
 					yield return DisconnectPeerCoroutine(peer);
 
 					_coroutine = null;
