@@ -3,6 +3,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -14,9 +16,11 @@ using Fusion.Sockets;
 using Hathora.Cloud.Sdk.Api;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Client.ApiWrapper;
+using Hathora.Core.Scripts.Runtime.Client.Config;
 using Newtonsoft.Json;
 using UnityEngine.Networking;
 using Application = UnityEngine.Application;
+using Assert = UnityEngine.Assertions.Assert;
 using UnityScene = UnityEngine.SceneManagement.Scene;
 
 namespace TPSBR
@@ -308,23 +312,54 @@ namespace TPSBR
 				startGameArgs.PlayerCount = peer.Request.MaxPlayers;
 			}
 
-			if (peer.GameMode == GameMode.Server || peer.GameMode == GameMode.Host)
+			if (peer.GameMode is GameMode.Server or GameMode.Host)
 			{
 				startGameArgs.SessionProperties = CreateSessionProperties(peer.Request);
-				
-				// TODO: Use HATHORA_PROCESS_ID to call ProcessesV1.GetProcessInfo()
-				//  This should replace the hard-coded IP address and HATHORA_PORT below
 				string HATHORA_PROCESS_ID = Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
 				
-				string HATHORA_PORT = Environment.GetEnvironmentVariable("HATHORA_PORT");
-				Log($"Server Start IP&Port: 52.223.24.56: " + HATHORA_PORT);
-				startGameArgs.Address = NetAddress.Any(7777); // This should be mapped to `-port` arg passed in Dockerfile
+				#region OLD
+				// // TODO: Use HATHORA_PROCESS_ID to call ProcessesV1.GetProcessInfo()
+				// //  This should replace the hard-coded IP address and HATHORA_PORT below
+				// string HATHORA_PORT = Environment.GetEnvironmentVariable("HATHORA_PORT");
+				// Log($"Server Start IP&Port: 52.223.24.56:{HATHORA_PORT}");
+				//
+				// startGameArgs.Address = NetAddress.Any(7777); // This should be mapped to `-port` arg passed in Dockerfile
+				//
+				// // IP: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
+				// //   (will need to convert hostname to ip) - maybe this: https://stackoverflow.com/questions/13248971/resolve-hostname-to-ip
+				// // PORT: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
+				// startGameArgs.CustomPublicAddress = NetAddress.CreateFromIpPort(
+				// 	"52.223.24.56", 
+				// 	ushort.Parse(HATHORA_PORT));
+				#endregion // OLD
 				
-				// IP: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
-				//   (will need to convert hostname to ip) - maybe this: https://stackoverflow.com/questions/13248971/resolve-hostname-to-ip
-				// PORT: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
-				startGameArgs.CustomPublicAddress = NetAddress.CreateFromIpPort("52.223.24.56", ushort.Parse(HATHORA_PORT));
-			} 
+				HathoraClientConfig clientConfig = ScriptableObject.CreateInstance<HathoraClientConfig>();
+				clientConfig.AppId = "SomeHathoraAppId"; // TODO: Serialize HathoraClientConfig somewhere and set the AppId.
+
+				NetHathoraClientProcessApi processApi = gameObject.GetComponent<NetHathoraClientProcessApi>();
+				processApi.Init(clientConfig);
+				
+				// Normally this is an `await`, but we're inside a coroutine =>
+				Process processInfo = null;
+				processApi.ClientGetProcessInfoAsync(HATHORA_PROCESS_ID).ContinueWith(task =>
+				{
+					// TODO: Err handling, but coroutines don't support try/catch. We should convert this block to async/await, one day. 
+					processInfo = task.Result;
+				});
+
+				// Coroutine workaround for async/await's `await` =>
+				yield return new WaitUntil(() => processInfo != null);
+
+				// This will sometimes return more than 1 IP, but we just need 1
+				IPAddress ipAddress = Dns.GetHostAddresses(processInfo.ExposedPort.Host).FirstOrDefault();
+				Assert.IsNotNull(ipAddress, $"Expected IP from host address `{processInfo.ExposedPort.Host}`");
+
+				// We now have dynamically-collected port + ip (ip converted from host name)
+				Debug.Log($"Server Start IP&Port: 52.223.24.56:{processInfo.ExposedPort.Port}");
+				startGameArgs.CustomPublicAddress = NetAddress.CreateFromIpPort(
+					ipAddress.ToString(), 
+					(ushort)processInfo.ExposedPort.Port);
+			}
 
 			if (peer.Request.IPAddress.HasValue() == true)
 			{
