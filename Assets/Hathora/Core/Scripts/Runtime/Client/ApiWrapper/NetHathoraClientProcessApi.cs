@@ -64,8 +64,10 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
                 
                 try
                 {
-                    Debug.Log("Try GetProcessInfoAsync(), appId: " + HathoraClientConfig.AppId + ", ProcessId: " +
-                              processId);
+                    Debug.Log($"Try GetProcessInfoAsync(), " +
+                        $"appId: `{HathoraClientConfig.AppId}`, " +
+                        $"ProcessId: `{processId}`");
+                    
                     processInfoResponse = await processesApi.GetProcessInfoAsync(
                         HathoraClientConfig.AppId, 
                         processId,
