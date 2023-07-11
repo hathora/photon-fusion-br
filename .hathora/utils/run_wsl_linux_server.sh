@@ -37,6 +37,19 @@
 # -------------------------------------------------------------------------------------
 # Created by dylan@hathora.dev @ 7/11/2023
 ###################################################################################################
+# CUSTOMIZABLE >>
+export SERVER_PORT=7777 # Arbitrary, but client must match server
+exe_name="Hathora-Unity-LinuxServer.x86_64"
+path_to_linux_server="../../Build-Server/$exe_name"
+game_mode="deathmatch"
+max_players=5
+region="us"
+server_name="HathoraHeadlessServer"
+session_name=$server_name
+extra_unity_args=""
+extra_photon_args=""
+scene_name="GenArea2"
+###################################################################################################
 
 # Check for -p HathoraProcessId arg
 while getopts ":p:" opt; do
@@ -60,36 +73,46 @@ export HATHORA_PROCESS_ID
 # Then log results
 # ====================================================================
 
-# Arbitrary, but must match Client's port
-export SERVER_PORT=7777
-
 # Get the "real" IP of the Wsl2 IP (essentially 'localhost' ported through)
 echo "Current directory: $(pwd)"
 export LOCAL_SERVER_IP=$(./reveal_wsl_vm_ip.sh)
 
+# ====================================================================
+# Set the expected args + cmd early so we may log it
+# ====================================================================
+unity_args="-batchmode -nographics $extra_unity_args"
+photon_args="-dedicatedServer \
+  -$game_mode \
+  -maxPlayers $max_players \
+  -scene $scene_name \
+  -region $region \
+  -serverName $server_name \
+  -sessionName $session_name \
+  -port $SERVER_PORT \
+  $extra_photon_args"
+
+linux_cmd="$path_to_linux_server $unity_args $photon_args"
+
+# ====================================================================
+# Colored logs: ip:port, exe path, cmd, args
+# ====================================================================
 # Print the output of the Wsl2 IP (essentially `localhost` for WSL2)
+# Make it stand out with color
+COLOR='\033[38;5;213m' # Magenta
+NC='\033[0m' # No Color
+
 clear
-echo "Starting dedicated server: \`$LOCAL_SERVER_IP:$SERVER_PORT\`"
-echo "HATHORA_PROCESS_ID: \`$HATHORA_PROCESS_ID\`"
-echo "-----------------------------"
+echo -e "${COLOR}-----------------------------${NC}"
+echo -e "${COLOR}Starting dedicated server: \`$LOCAL_SERVER_IP:$SERVER_PORT\`${NC}"
+echo -e "${COLOR}HATHORA_PROCESS_ID: \`$HATHORA_PROCESS_ID\`${NC}"
+echo -e "${COLOR}Starting instance @ \`$path_to_linux_server\`${NC}"
+echo -e "${COLOR}unity_args: $unity_args${NC}"
+echo -e "${COLOR}photon_args: $photon_args${NC}"
+echo -e "${COLOR}-----------------------------${NC}"
 echo ""
 
 # ====================================================================
 # START LINUX SERVER (from Windows -> via wsl2)
 # By default, works with default Unity `HathoraServerConfig` settings
 # ====================================================================
-exe_name="Hathora-Unity-LinuxServer.x86_64"
-path_to_linux_server="../../Build-Server/$exe_name"
-echo "[$exe_name] Starting instance @ \`$path_to_linux_server\`"
-
-unity_args="-batchmode -nographics"
-photon_args="-dedicatedServer \
-	-deathmatch \
-	-maxPlayers 5 \
-	-scene GenArea2 \
-	-region us \
-	-serverName LocalHeadlessServer \
-	-port $SERVER_PORT"
-
-linux_cmd="$path_to_linux_server $unity_args $photon_args"
 $linux_cmd
