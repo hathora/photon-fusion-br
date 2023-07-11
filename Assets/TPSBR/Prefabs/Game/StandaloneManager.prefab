@@ -47,13 +47,13 @@ MonoBehaviour:
   _defaultConfiguration:
     GameplayType: 1
     GameMode: 5
-    ServerName: Standalone Game
+    ServerName: DECOYSERVER
     MaxPlayers: 200
     ExtraPeers: 0
-    Region: 
-    SessionName: 
+    Region: us
+    SessionName: hathoraDeployedServer
     CustomLobby: 
-    IPAddress: 127.0.0.1
+    IPAddress: 172.30.113.79
     Port: 7777
     Multiplay: 0
     QueryProtocol: 0

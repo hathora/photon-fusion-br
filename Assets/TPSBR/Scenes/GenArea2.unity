@@ -710,20 +710,24 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
-      propertyPath: _defaultConfiguration.Port
-      value: 52029
+      propertyPath: _defaultConfiguration.GameMode
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: _defaultConfiguration.IPAddress
-      value: 52.223.24.56
+      value: 127.0.0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.MaxPlayers
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: _defaultConfiguration.ServerName
-      value: DECOYSERVER
+      value: localHeadlessServer
       objectReference: {fileID: 0}
     - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: _defaultConfiguration.SessionName
-      value: hathoraDeployedServer
+      value: localHeadlessServer
       objectReference: {fileID: 0}
     - target: {fileID: 6820614581923546004, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: m_RootOrder
