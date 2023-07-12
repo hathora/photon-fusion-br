@@ -15,7 +15,6 @@ using Fusion;
 using Fusion.Photon.Realtime;
 using Fusion.Plugin;
 using Fusion.Sockets;
-using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Server;
 using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
@@ -45,8 +44,8 @@ namespace TPSBR
 	// functionality and directly starting via NetworkRunner) for your game unless such functionality is needed.
 	public class Networking : MonoBehaviour
 	{
-		// HATHOR
-		private HathoraServerConfig hathoraServerConfig => 
+		// HATHORA
+		private static HathoraServerConfig hathoraServerConfig => 
 			Global.Settings.HathoraServerConfig;
 		
 		// CONSTANTS
