@@ -51,7 +51,7 @@ MonoBehaviour:
     MaxPlayers: 5
     ExtraPeers: 0
     Region: us
-    SessionName: hathoraHeadlessServer
+    SessionName: hathoraHeadlessServerSession
     CustomLobby: 
     IPAddress: 0.0.0.0
     Port: 7777
