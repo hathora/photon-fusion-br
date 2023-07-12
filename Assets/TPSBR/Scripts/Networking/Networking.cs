@@ -330,10 +330,7 @@ namespace TPSBR
 				#region Hathora Server Init
 				// ===============================================================================
 				// 1. Get ip:port
-				//   (1A) via Hathora Process: Get ProcessId from Env Var (likely from CLI arg)
-				//		TODO: Since ProcessIds only last 5m + are manually created;
-				//      TODO: we probably want to programatically spin up a new one before (A)?
-				//
+				//   (1A) via Hathora Process: Get ProcessId from Env Var (locally testing sets this manually
 				//   (1B) Fallback to local Hathora server; info also from Env Vars
 				//
 				// 2. Set Photon's startGameArgs.CustomPublicAddress
