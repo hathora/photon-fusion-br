@@ -18,6 +18,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
     public class HathoraServerBuildApi : HathoraServerApiBase
     {
         private readonly BuildV1Api buildApi;
+        private volatile bool uploading;
 
         /// <summary>
         /// </summary>
@@ -92,8 +93,11 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             BuildV1Api highTimeoutBuildApi = new(highTimeoutConfig);
             #endregion // Timeout Workaround
          
+            uploading = true;
             try
             {
+                _ = startProgressNoticeAsync(); // !await
+                
                 await using FileStream fileStream = new(
                     _pathToTarGzBuildFile, 
                     FileMode.Open, 
@@ -115,6 +119,10 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
 
                 return null;
             }
+            finally
+            {
+                uploading = false;
+            }
 
             Debug.Log($"[HathoraServerBuildApi.RunCloudBuildAsync] Done - " +
                 "to know if success, call buildApi.RunBuild");
@@ -124,6 +132,20 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             List<string> logChunks = onRunCloudBuildDone(encodedLogs);
             
             return logChunks;  // streamLogs 
+        }
+
+        private async Task startProgressNoticeAsync()
+        {
+            TimeSpan delayTimespan = TimeSpan.FromSeconds(5);
+            StringBuilder sb = new("...");
+            
+            while (uploading)
+            {
+                Debug.Log($"[HathoraServerBuild] Uploading {sb}");
+                
+                await Task.Delay(delayTimespan);
+                sb.Append(".");
+            }
         }
 
         /// <summary>
