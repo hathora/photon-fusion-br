@@ -709,6 +709,30 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.Port
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.GameMode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.IPAddress
+      value: 0.0.0.0
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.ServerName
+      value: hathoraDeployedServer
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.CustomLobby
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 687343395, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
+      propertyPath: _defaultConfiguration.SessionName
+      value: hathoraDeployedServerSession
+      objectReference: {fileID: 0}
     - target: {fileID: 6820614581923546004, guid: f37fee8a72a3e7c4283f04c9f67429aa, type: 3}
       propertyPath: m_RootOrder
       value: 4
