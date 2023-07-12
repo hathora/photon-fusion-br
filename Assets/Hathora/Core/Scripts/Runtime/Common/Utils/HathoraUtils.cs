@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
 using UnityEngine;
 using Application = UnityEngine.Application;
 
@@ -89,6 +90,21 @@ namespace Hathora.Core.Scripts.Runtime.Common.Utils
             TimeSpan duration = _endTime - _startTime;
 
             return GetFriendlyDateTimeDiff(duration, exclude0);
+        }
+        
+        /// <summary>
+        /// Useful for creating a deep copy of a class obj. For example, with the Hathora Sdk Config.
+        /// JSON serialization: Similar to binary serialization, but uses JSON as an intermediary format.
+        /// It's simpler and doesn't require [Serializable] attribute but might be slower and
+        /// has limitations with some complex types.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T DeepCopy<T>(T obj)
+        {
+            var json = JsonConvert.SerializeObject(obj);
+            return JsonConvert.DeserializeObject<T>(json);
         }
     }
 }
