@@ -15,14 +15,10 @@ using Fusion;
 using Fusion.Photon.Realtime;
 using Fusion.Plugin;
 using Fusion.Sockets;
-using Hathora.Cloud.Sdk.Api;
 using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
-using Hathora.Core.Scripts.Runtime.Client.ApiWrapper;
-using Hathora.Core.Scripts.Runtime.Client.Config;
-using Hathora.Core.Scripts.Runtime.Client.Models;
-using Newtonsoft.Json;
-using UnityEngine.Networking;
+using Hathora.Core.Scripts.Runtime.Server;
+using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
 using Application = UnityEngine.Application;
 using Assert = UnityEngine.Assertions.Assert;
 using UnityScene = UnityEngine.SceneManagement.Scene;
@@ -49,6 +45,10 @@ namespace TPSBR
 	// functionality and directly starting via NetworkRunner) for your game unless such functionality is needed.
 	public class Networking : MonoBehaviour
 	{
+		// HATHOR
+		private HathoraServerConfig hathoraServerConfig => 
+			Global.Settings.HathoraServerConfig;
+		
 		// CONSTANTS
 
 		public const string DISPLAY_NAME_KEY = "name";
@@ -337,7 +337,7 @@ namespace TPSBR
 				// ===============================================================================
 				
 				// Coroutine workaround for async/await: Loop the Task until we have a result =>
-				(IPAddress ip, ushort port) ipPort = default;
+				(IPAddress ip, ushort port, bool isDone) ipPort = default;
 				GetHathoraServerIpPortAsync().ContinueWith(task =>
 				{
 					ipPort = task.Result;
@@ -347,11 +347,14 @@ namespace TPSBR
 				});
 				
 				// Coroutine workaround for async/await's `await` =>
-				yield return new WaitUntil(() => ipPort.ip != null);
+				yield return new WaitUntil(() => ipPort.isDone);
 				#endregion // Hathora Server Init
 				
-				// We have ip:port from: Hathora Process || local fallback || null:0 (ip:port)
-				serverSetCustomPublicAddress(ipPort, ref startGameArgs); // validates + logs
+				// // We have ip:port from: Hathora Process || local fallback || null:0 (ip:port)
+				// serverSetCustomPublicAddress(
+				// 	ipPort.ip, 
+				// 	ipPort.port, 
+				// 	ref startGameArgs); // validates + logs
 			}
 
 			if (peer.Request.IPAddress.HasValue() == true)
@@ -608,7 +611,7 @@ namespace TPSBR
 
 		
 		#region Hathora Utils
-		private async Task<(IPAddress ip, ushort port)> GetHathoraServerIpPortAsync()
+		private async Task<(IPAddress ip, ushort port, bool isDone)> GetHathoraServerIpPortAsync()
 		{
 			string HATHORA_PROCESS_ID = Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
 			Log($"[ConnectPeerCoroutine] HATHORA_PROCESS_ID: {HATHORA_PROCESS_ID}");
@@ -633,14 +636,14 @@ namespace TPSBR
 
 
 			// Get ip:port from Hathora ProcessId; OR local fallback
-			(IPAddress ip, ushort port) hathoraServerIpPort = (null, 0); 
+			(IPAddress ip, ushort port) ipPort = default;
 			
 			if (hasHathoraProcId)
 			{
 				// Coroutine workaround for async/await: Loop the Task until we have a result =>
 				try
 				{
-					hathoraServerIpPort = await hathoraServerGetIpPortFromProcessAsync(HATHORA_PROCESS_ID);
+					ipPort = await hathoraServerGetProcessAsync(HATHORA_PROCESS_ID);
 				}
 				catch (Exception e)
 				{
@@ -652,22 +655,27 @@ namespace TPSBR
 			         !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SERVER_PORT")?.Trim()))
 			{
 				// Fallback to local server via env var info (override Photon settings)
-				hathoraServerIpPort = getIpPortFromEnvVars();
+				ipPort = getIpPortFromEnvVars();
 			}
 			else
 			{
 				// Fallback to server via Photon settings
-				hathoraServerIpPort = getIpPortFromPhotonSettings();
+				ipPort = serverGetIpPortFromPhotonSettings();
 			}
 
-			return hathoraServerIpPort;
+			(IPAddress ip, ushort port, bool isDone) ipPortResult = (ipPort.ip, ipPort.port, true);
+			return ipPortResult;
 		}
 
-		private (IPAddress ip, ushort port) getIpPortFromPhotonSettings()
+		private (IPAddress ip, ushort port) serverGetIpPortFromPhotonSettings()
 		{
+			
 			Log("getIpPortFromPhotonSettings");
-			string ip = PhotonAppSettings.Instance.AppSettings.Server;
-			ushort port = ushort.Parse(PhotonAppSettings.Instance.AppSettings.Port.ToString());
+			
+			// Parse ip:port <string>s to <IPAddress>:<ushort>
+			string ipStr = PhotonAppSettings.Instance.AppSettings.Server;
+			string portStr = PhotonAppSettings.Instance.AppSettings.Port.ToString(); 
+			ushort.TryParse(portStr, out ushort port);
 				
 			#region OLD
 			// startGameArgs.Address = NetAddress.Any(7777); // This should be mapped to `-port` arg passed in Dockerfile
@@ -677,90 +685,45 @@ namespace TPSBR
 			// PORT: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
 			#endregion // OLD
 
-			IPAddress ipAddress = IPAddress.Parse(ip);
-			return (ipAddress, port);
+			IPAddress.TryParse(ipStr, out IPAddress ipAddress);
+			return (ipAddress, port); // null is ok; Photon will handle it
 		}
 
-		private async Task<(IPAddress ip, ushort port)> hathoraServerGetIpPortFromProcessAsync(string _hathoraProcId)
-		{
-			Log($"hathoraServerGetIpPortFromProcessAsync: _hathoraProcId=={_hathoraProcId}");
-			
-			// ===============================================
-			// As a client, we need to 1st auth with Hathora
-			// ===============================================
-					
-			// TODO: Get HathoraClientConfig from a serialized field (instead of hard-coding)
-			HathoraClientConfig hathoraClientConfig = ScriptableObject.CreateInstance<HathoraClientConfig>();
-			hathoraClientConfig.AppId = "app-4ad6e490-e8be-452c-b6cc-d9bc27905e0e";
-					
-			// -------------------
-			// Coroutine workaround for async/await: Loop the Task until we have a result =>
-			AuthResult authResult = null;
-			try
-			{
-				authResult = await hathoraClientAnonAuthAsync(hathoraClientConfig);
-			}
-			catch (Exception e)
-			{
-				Debug.LogError($"[hathoraServerGetIpPortFromProcessAsync] hathoraClientAnonAuthAsync => Error: {e}");
-				throw;
-			}					
-			// We're authed -> Set auth token to pass to Hathora client APIs
-			Configuration hathoraSdkConfig = new()
-			{
-				AccessToken = authResult.PlayerAuthToken,
-			};
-
-			// -------------------
-			// Coroutine workaround for async/await: Loop the Task until we have a result =>
-			try
-			{			
-				return await hathoraClientGetProcessAsync(
-					_hathoraProcId,
-					hathoraClientConfig,
-					hathoraSdkConfig);
-			}
-			catch (Exception e)
-			{
-				Debug.LogError($"[hathoraServerGetIpPortFromProcessAsync] hathoraClientGetProcessAsync => Error: {e}");
-				throw;
-			}
-
-		}
-
-		private async Task<AuthResult> hathoraClientAnonAuthAsync(
-			HathoraClientConfig hathoraClientConfig, 
-			CancellationToken _cancelToken = default)
-		{
-			NetHathoraClientAuthApi authApi = gameObject.AddComponent<NetHathoraClientAuthApi>();
-			authApi.Init(hathoraClientConfig);
-
-			try
-			{
-				return await authApi.ClientAuthAsync(_cancelToken);
-			}
-			catch (Exception e)
-			{
-				Debug.LogError($"[hathoraClientAnonAuthAsync] ClientAuthAsync => Error: {e}");
-				throw;
-			}
-		}
+		// private async Task<AuthResult> hathoraClientAnonAuthAsync(
+		// 	HathoraClientConfig hathoraClientConfig, 
+		// 	CancellationToken _cancelToken = default)
+		// {
+		// 	NetHathoraClientAuthApi authApi = gameObject.AddComponent<NetHathoraClientAuthApi>();
+		// 	authApi.Init(hathoraClientConfig);
+		//
+		// 	try
+		// 	{
+		// 		return await authApi.ClientAuthAsync(_cancelToken);
+		// 	}
+		// 	catch (Exception e)
+		// 	{
+		// 		Debug.LogError($"[hathoraClientAnonAuthAsync] ClientAuthAsync => Error: {e}");
+		// 		throw;
+		// 	}
+		// }
 
 		/// <summary>Validates -> logs -> sets ip:port</summary>
-		/// <param name="_hathoraServerTarget">Named Tuple</param>
+		/// <param name="_ip"></param>
+		/// <param name="_port"></param>
 		/// <param name="_startGameArgs">Passed ByRef to set `CustomPublicAddress`</param>
 		private void serverSetCustomPublicAddress(
-			(IPAddress ip, ushort port) _hathoraServerTarget, 
+			IPAddress _ip,
+			ushort _port,
 			ref StartGameArgs _startGameArgs)
 		{
 			// Sanity check
-			Assert.IsNotNull(_hathoraServerTarget.ip, "Expected hathoraServerTarget.ip");
-			Assert.IsTrue(_hathoraServerTarget.port > 0, "Expected hathoraServerTarget.port > 0");
-			Log($"[setCustomPublicAddress] Starting server: `{_hathoraServerTarget.ip}:{_hathoraServerTarget.port}`");
-			
-			_startGameArgs.CustomPublicAddress = NetAddress.CreateFromIpPort(
-				_hathoraServerTarget.ip.ToString(), 
-				_hathoraServerTarget.port);
+			// Assert.IsNotNull(_ip, "Expected hathoraServerTarget.ip");
+			// Assert.IsTrue(_port > 0, "Expected hathoraServerTarget.port > 0");
+			Log($"[setCustomPublicAddress] `{_ip}:{_port}`");
+
+			_startGameArgs.CustomPublicAddress = _ip == null
+				? NetAddress.Any(_port)
+				: NetAddress.CreateFromIpPort(_ip.ToString(), _port);
 		}
 
 		/// <summary>Hathora local testing util, if launched with CLI -args or with env vars set</summary>
@@ -779,7 +742,7 @@ namespace TPSBR
 				return default;
 
 			// Parse string to the return val types
-			ushort ipUint = ushort.Parse(SERVER_PORT);
+			ushort.TryParse(SERVER_PORT, out ushort ipUint);
 			IPAddress ipAddress = IPAddress.Parse(LOCAL_SERVER_IP);
 
 			return (ipAddress, ipUint);
@@ -787,36 +750,45 @@ namespace TPSBR
 
 		/// <summary>Gets hathora Process async; converts host name to IP</summary>
 		/// <param name="_hathoraProcessId"></param>
-		/// <param name="_clientConfig">Expects AppId</param>
-		/// <param name="_hathoraSdkConfig">Expects AccessToken</param>
 		/// <param name="_cancelToken"></param>
 		/// <returns>(IPAddress ip, ushort port) named Tuple</returns>
-		private async Task<(IPAddress ip, ushort port)> hathoraClientGetProcessAsync(
+		private async Task<(IPAddress ip, ushort port)> hathoraServerGetProcessAsync(
 			string _hathoraProcessId,
-			HathoraClientConfig _clientConfig,
-			Configuration _hathoraSdkConfig,
 			CancellationToken _cancelToken = default)
 		{
+			string logPrefix = $"[Networking.{nameof(hathoraServerGetProcessAsync)}]";
+			Log($"{logPrefix} _hathoraProcessId=={_hathoraProcessId}");
+
+			// Validate Hathora Server Config + Auth Token
+			if (hathoraServerConfig == null)
+				throw new NullReferenceException($"{logPrefix} !hathoraServerConfig: Serialize it @ GlobalSettings.cs");
+			
+			if (!hathoraServerConfig.HathoraCoreOpts.DevAuthOpts.HasAuthToken)
+			{
+				throw new NullReferenceException($"{logPrefix} !hathoraServerConfig.HathoraCoreOpts" +
+					".DevAuthOpts.HasAuthToken: Ensure you are authenticated to Hathora via HathoraServerConfig file " +
+					"(find via top menu: `Hathora/ServerConfigFinder`)");
+			}
+			
 			// Set ip:port via Hathora API's procId >>
-			NetHathoraClientProcessApi processApi = gameObject.AddComponent<NetHathoraClientProcessApi>();
-			processApi.Init(_clientConfig, _hathoraSdkConfig);
+			HathoraServerProcessApi processApi = new(hathoraServerConfig);
 
 			// Normally this is an `await`, but we're inside a coroutine =>
 			Process process = null;
 			try
 			{
-				process = await processApi.ClientGetProcessInfoAsync(
-					_hathoraProcessId, 
+				process = await processApi.GetProcessInfoAsync(
+					_hathoraProcessId,
 					_cancelToken: _cancelToken);
 			}
 			catch (Exception e)
 			{
-				Debug.LogError($"[getHathoraProcess] hathoraClientGetProcessAsync => Error: {e}");
+				Debug.LogError($"{logPrefix} GetProcessInfoAsync => Error: {e}");
 				throw;
 			}
 			
-			Assert.IsNotNull(process?.ExposedPort?.Host, "Expected `process.ExposedPort.Host`");
-			Assert.IsTrue(process?.ExposedPort?.Port > 0, "Expected `process.ExposedPort.Port > 0`");
+			Assert.IsNotNull(process?.ExposedPort?.Host, $"{logPrefix} Expected `process.ExposedPort.Host`");
+			Assert.IsTrue(process?.ExposedPort?.Port > 0, $"{logPrefix} Expected `process.ExposedPort.Port > 0`");
 				
 			// Get the IP address from the host name; this can return > 1, but we just want 1st
 			(IPAddress ip, ushort port) ipPort;
