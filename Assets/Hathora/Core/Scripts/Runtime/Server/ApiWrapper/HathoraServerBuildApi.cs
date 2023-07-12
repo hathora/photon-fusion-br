@@ -82,7 +82,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             string _pathToTarGzBuildFile,
             CancellationToken _cancelToken = default)
         {
-            byte[] cloudRunBuildResultLogsStream;
+            byte[] cloudRunBuildResultLogsStream = null;
 
             #region Timeout Workaround
             // Temporarily sets the Timeout to 15min (900k ms) to allow for large builds.
@@ -94,13 +94,14 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             #endregion // Timeout Workaround
          
             uploading = true;
+
             try
             {
                 _ = startProgressNoticeAsync(); // !await
-                
+
                 await using FileStream fileStream = new(
-                    _pathToTarGzBuildFile, 
-                    FileMode.Open, 
+                    _pathToTarGzBuildFile,
+                    FileMode.Open,
                     FileAccess.Read);
 
                 // (!) Using the `highTimeoutBuildApi` workaround instance here
@@ -109,6 +110,10 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
                     _buildId,
                     fileStream,
                     _cancelToken);
+            }
+            catch (TaskCanceledException)
+            {
+                Debug.Log("[HathoraServerBuildApi.RunCloudBuildAsync] Task Cancelled || timed out");
             }
             catch (ApiException apiException)
             {
