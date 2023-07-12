@@ -11,7 +11,7 @@ COPY ./Build-Server .
 RUN chmod +x ./Hathora-Unity-LinuxServer.x86_64
 
 # Run the Linux server in headless mode as a dedicated server
-CMD ./Hathora-Unity-LinuxServer.x86_64 -batchmode -nographics -dedicatedServer -deathmatch -maxPlayers 5 -scene GenArea2 -region us -serverName hathoraDeployedServer -sessionName hathoraDeployedServer -port 7777
+CMD ./Hathora-Unity-LinuxServer.x86_64 -batchmode -nographics -dedicatedServer -deathmatch -maxPlayers 5 -scene GenArea2 -region us -serverName hathoraDeployedServer -sessionName hathoraDeployedServerSession -port 7777
 
 # Used this to just keep the container running so we could just kubectl in to set env variable HATHORA_PORT, but we should get that info from API call
 # CMD ["sleep","500"]
