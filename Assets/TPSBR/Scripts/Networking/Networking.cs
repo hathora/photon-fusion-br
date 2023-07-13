@@ -47,6 +47,14 @@ namespace TPSBR
 		// HATHORA
 		private static HathoraServerConfig hathoraServerConfig => 
 			Global.Settings.HathoraServerConfig;
+
+		/// <summary>Useful for local testing or within the editor</summary>
+		private const bool USE_MOCK_HATHORA_PROCESS_ID = false;
+
+		/// <summary>
+		/// Create a Room (5m ttl) -> manually toss the processId here -> set USE_MOCK_HATHORA_PROCESS_ID
+		/// </summary>
+		private const string MOCK_HATHORA_PROCESS_ID = "eb4b7dc9-9c9e-4967-bf6e-d22f13b23455";
 		
 		// CONSTANTS
 
@@ -328,11 +336,21 @@ namespace TPSBR
 
 				#region Hathora Server Init
 				// ===============================================================================
-				// 1. Get ip:port
-				//   (1A) via Hathora Process: Get ProcessId from Env Var (locally testing sets this manually
-				//   (1B) Fallback to local Hathora server; info also from Env Vars
 				//
-				// 2. Set Photon's startGameArgs.CustomPublicAddress
+				// OBSERVATIONS (TODO: DELETE ME)
+				// - If we completely omit this #region, Photon's discovery protocols will *still*
+				//   find/register the server deployed in Hathora and you'll see Room logs when
+				//   the player connects, *but* CCU !registers in the Hathora Console (and, thus,
+				//   shuts itself [the Processs] down after 5m).
+				//
+				// ===============================================================================
+				//
+				// HATHORA FLOW:
+				// 1. Serialize HathoraServerConfig @ Photon's GlobalSettingg ScriptableObject
+				// 2. Get server ip:port via Hathora server `Process` API wrapper to get processId
+				// 3. Convert the host name to IP addresss
+				// 4. Set Photon's startGameArgs.CustomPublicAddress
+				//
 				// ===============================================================================
 				
 				// Coroutine workaround for async/await: Loop the Task until we have a result =>
@@ -347,22 +365,24 @@ namespace TPSBR
 				
 				// Coroutine workaround for async/await's `await` =>
 				yield return new WaitUntil(() => ipPort.isDone);
-				#endregion // Hathora Server Init
 				
-				// // We have ip:port from: Hathora Process || local fallback || null:0 (ip:port)
-				// serverSetCustomPublicAddress(
-				// 	ipPort.ip, 
-				// 	ipPort.port, 
-				// 	ref startGameArgs); // validates + logs
+				// We have ip:port from: Hathora Process || local fallback || null:0 (ip:port)
+				serverSetCustomPublicAddress(
+					ipPort.ip, 
+					ipPort.port, 
+					ref startGameArgs); // validates + logs
+				#endregion // Hathora Server Init
 			}
 
 			if (peer.Request.IPAddress.HasValue() == true)
 			{
+				// Sets the StandaloneMgr vals, if exists. For servers, don't set this. --Hathora
 				Log($"peer request IP&Port: " + peer.Request.IPAddress + " " + peer.Request.Port);
 				startGameArgs.Address = NetAddress.CreateFromIpPort(peer.Request.IPAddress, peer.Request.Port);
 			}
 			else if (peer.Request.Port > 0)
 			{
+				// Sets the StandaloneMgr vals, if exists. For servers, don't set this. --Hathora
 				Log($"peer request port: " + peer.Request.Port);
 				startGameArgs.Address = NetAddress.Any(peer.Request.Port);
 			}
@@ -610,30 +630,24 @@ namespace TPSBR
 
 		
 		#region Hathora Utils
+		/// <summary>
+		/// Gets processsId from env var ->   
+		/// </summary>
+		/// <returns></returns>
 		private async Task<(IPAddress ip, ushort port, bool isDone)> GetHathoraServerIpPortAsync()
 		{
-			string HATHORA_PROCESS_ID = Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
+			// Mock it, or get the actual env var?
+			string HATHORA_PROCESS_ID = USE_MOCK_HATHORA_PROCESS_ID && !string.IsNullOrEmpty(MOCK_HATHORA_PROCESS_ID)
+				? MOCK_HATHORA_PROCESS_ID
+				: Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
+			
+			if (USE_MOCK_HATHORA_PROCESS_ID)
+				Log("[GetHathoraServerIpPortAsync] <color=yellow>(!) USE_MOCK_HATHORA_PROCESS_ID</color>");
+			
 			Log($"[ConnectPeerCoroutine] HATHORA_PROCESS_ID: {HATHORA_PROCESS_ID}");
 			bool hasHathoraProcId = !string.IsNullOrEmpty(HATHORA_PROCESS_ID);
-			
-			
-			#region OLD
-			// // TODO: Use HATHORA_PROCESS_ID to call ProcessesV1.GetProcessInfo()
-			// //  This should replace the hard-coded IP address and HATHORA_PORT below
-			// string HATHORA_PORT = Environment.GetEnvironmentVariable("HATHORA_PORT");
-			// Log($"Server Start IP&Port: 52.223.24.56:{HATHORA_PORT}");
-			//
-			// startGameArgs.Address = NetAddress.Any(7777); // This should be mapped to `-port` arg passed in Dockerfile
-			//
-			// // IP: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
-			// //   (will need to convert hostname to ip) - maybe this: https://stackoverflow.com/questions/13248971/resolve-hostname-to-ip
-			// // PORT: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
-			// startGameArgs.CustomPublicAddress = NetAddress.CreateFromIpPort(
-			// 	"52.223.24.56", 
-			// 	ushort.Parse(HATHORA_PORT));
-			#endregion // OLD
 
-
+			// -----------------------------------------------------
 			// Get ip:port from Hathora ProcessId; OR local fallback
 			(IPAddress ip, ushort port) ipPort = default;
 			
@@ -650,22 +664,27 @@ namespace TPSBR
 					throw;
 				}
 			}
-			else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("LOCAL_SERVER_IP")?.Trim()) && 
-			         !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SERVER_PORT")?.Trim()))
-			{
-				// Fallback to local server via env var info (override Photon settings)
-				ipPort = getIpPortFromEnvVars();
-			}
-			else
-			{
-				// Fallback to server via Photon settings
-				ipPort = serverGetIpPortFromPhotonSettings();
-			}
+			// else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("LOCAL_SERVER_IP")?.Trim()) && 
+			//          !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SERVER_PORT")?.Trim()))
+			// {
+			// 	// Fallback to local server via env var info (override Photon settings)
+			// 	ipPort = getIpPortFromEnvVars();
+			// }
+			// else
+			// {
+			// 	// Fallback to server via Photon settings
+			// 	ipPort = serverGetIpPortFromPhotonSettings();
+			// }
 
-			(IPAddress ip, ushort port, bool isDone) ipPortResult = (ipPort.ip, ipPort.port, true);
+			// -----------------------------------------------------
+			// Done
+			(IPAddress ip, ushort port, bool isDone) ipPortResult = 
+				(ipPort.ip, ipPort.port, true);
+			
 			return ipPortResult;
 		}
 
+		[Obsolete("Possibly unnecesssary due to Photon's Discovery protocols")]
 		private (IPAddress ip, ushort port) serverGetIpPortFromPhotonSettings()
 		{
 			
@@ -674,17 +693,10 @@ namespace TPSBR
 			// Parse ip:port <string>s to <IPAddress>:<ushort>
 			string ipStr = PhotonAppSettings.Instance.AppSettings.Server;
 			string portStr = PhotonAppSettings.Instance.AppSettings.Port.ToString(); 
-			ushort.TryParse(portStr, out ushort port);
-				
-			#region OLD
-			// startGameArgs.Address = NetAddress.Any(7777); // This should be mapped to `-port` arg passed in Dockerfile
-				
-			// IP: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
-			//   (will need to convert hostname to ip) - maybe this: https://stackoverflow.com/questions/13248971/resolve-hostname-to-ip
-			// PORT: should be dynamically populated via API call to ProcessesV1.GetProcessInfo()
-			#endregion // OLD
-
+			
+			ushort.TryParse(portStr, out ushort port); 
 			IPAddress.TryParse(ipStr, out IPAddress ipAddress);
+			
 			return (ipAddress, port); // null is ok; Photon will handle it
 		}
 
@@ -715,9 +727,13 @@ namespace TPSBR
 			ushort _port,
 			ref StartGameArgs _startGameArgs)
 		{
-			// Sanity check
-			// Assert.IsNotNull(_ip, "Expected hathoraServerTarget.ip");
-			// Assert.IsTrue(_port > 0, "Expected hathoraServerTarget.port > 0");
+			if (_port == 0)
+			{
+				Log($"[setCustomPublicAddress] <color=orange>Invalid port for " +
+					$"custom public address:</color> {_port}");
+				return;
+			}
+			
 			Log($"[setCustomPublicAddress] `{_ip}:{_port}`");
 
 			_startGameArgs.CustomPublicAddress = _ip == null
@@ -726,6 +742,7 @@ namespace TPSBR
 		}
 
 		/// <summary>Hathora local testing util, if launched with CLI -args or with env vars set</summary>
+		[Obsolete("Possibly unnecesssary due to Photon's Discovery protocols")]
 		private (IPAddress ip, ushort port) getIpPortFromEnvVars()
 		{
 			// Get env vars
@@ -747,7 +764,7 @@ namespace TPSBR
 			return (ipAddress, ipUint);
 		}
 
-		/// <summary>Gets hathora Process async; converts host name to IP</summary>
+		/// <summary>Validates -> Gets hathora Process async; converts host name to IP</summary>
 		/// <param name="_hathoraProcessId"></param>
 		/// <param name="_cancelToken"></param>
 		/// <returns>(IPAddress ip, ushort port) named Tuple</returns>
@@ -756,7 +773,6 @@ namespace TPSBR
 			CancellationToken _cancelToken = default)
 		{
 			string logPrefix = $"[Networking.{nameof(hathoraServerGetProcessAsync)}]";
-			Log($"{logPrefix} _hathoraProcessId=={_hathoraProcessId}");
 
 			// Validate Hathora Server Config + Auth Token
 			if (hathoraServerConfig == null)
@@ -1112,7 +1128,7 @@ namespace TPSBR
 		[System.Diagnostics.Conditional("ENABLE_LOGS")]
 		private void Log(string message)
 		{
-			Debug.Log($"[{Time.realtimeSinceStartup:F3}][{Time.frameCount}] Networking({GetInstanceID()}): {message}");
+			Debug.Log($"[{Time.realtimeSinceStartup:F3}][{Time.frameCount}] Networking({GetInstanceID()}): {message}\n");
 		}
 
 		private static string StringToLabel(string myString)
