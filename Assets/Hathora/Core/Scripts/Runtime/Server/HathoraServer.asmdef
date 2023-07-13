@@ -7,10 +7,7 @@
         "GUID:abe524b27edd3ee43a52e7085bf4f4be",
         "GUID:f1759c9426648704a865065a6b2c1624"
     ],
-    "includePlatforms": [
-        "Editor",
-        "CloudRendering"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

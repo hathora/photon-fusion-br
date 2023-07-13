@@ -2,11 +2,16 @@
 
 using System;
 using System.Text;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor.Build.Reporting;
+#endif // UNITY_EDITOR
 
 namespace Hathora.Core.Scripts.Runtime.Server.Models
 {
+    /// <summary>
+    /// This is technically an editor script, but we #if directive UNITY_EDITOR for those parts
+    /// </summary>
     [Serializable]
     public class HathoraAutoBuildOpts
     {
@@ -82,12 +87,14 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
 
         
         #region Session Only (!Persistence)
+        #if UNITY_EDITOR
         private BuildReport _lastBuildReport;
         public BuildReport LastBuildReport
         {
             get => _lastBuildReport;
             set => _lastBuildReport = value;
         }
+        #endif // UNITY_EDITOR
 
         
         private StringBuilder _lastBuildLogsStrb = new();
