@@ -8,6 +8,11 @@ FROM ubuntu
 # Copy the server build files into the container, if Dockerfile is @ parent
 COPY ./Build-Server .
 
+# Update system and install certificates
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    update-ca-certificates
+
 RUN chmod +x ./Hathora-Unity-LinuxServer.x86_64
 
 # Run the Linux server in headless mode as a dedicated server
