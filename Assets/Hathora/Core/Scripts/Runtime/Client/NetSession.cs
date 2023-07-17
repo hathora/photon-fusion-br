@@ -1,5 +1,6 @@
 // Created by dylan@hathora.dev
 
+using System.Collections.Generic;
 using Hathora.Cloud.Sdk.Model;
 using UnityEngine;
 
@@ -20,11 +21,16 @@ namespace Hathora.Core.Scripts.Runtime.Client
         public string PlayerAuthToken { get; private set; }
         public bool IsAuthed => !string.IsNullOrEmpty(PlayerAuthToken);
 
+        /// <summary>The last known Lobby.</summary>
         public Lobby Lobby { get; set; }
+        
+        /// <summary>The last known List of Lobby for a server browser. </summary>
+        public List<Lobby> Lobbies { get; set; }
         public string RoomId => Lobby?.RoomId;
 
         /// <summary>
-        /// - Unity ClientAddress == ExposedPort.Host 
+        /// The last known ServerConnectionInfo (ip/host, port, protocol).
+        /// Unity ClientAddress == ExposedPort.Host
         /// </summary>
         public ConnectionInfoV2 ServerConnectionInfo { get; set; }
 

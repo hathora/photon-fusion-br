@@ -93,3 +93,5 @@ HathoraServerConfig*.asset*
 # Ignore .tar.gz files or WIP files (.tar, .temp)
 **/.hathora/*.tar*
 **/.hathora/*.temp*
+.hathora/utils/*.blob
+*.sh~

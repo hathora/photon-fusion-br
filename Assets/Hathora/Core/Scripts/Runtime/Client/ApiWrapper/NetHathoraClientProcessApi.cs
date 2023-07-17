@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion;
 using Hathora.Cloud.Sdk.Api;
 using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
@@ -16,9 +17,9 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
     /// * Does not handle UI.
     /// * Does not handle Session caching.
     /// </summary>
-    public class NetHathoraClientRoomApi : NetHathoraClientApiBase
+    public class NetHathoraClientProcessApi : NetHathoraClientApiBase
     {
-        private RoomV2Api roomApi;
+        private ProcessesV1Api processesApi;
 
         /// <summary>
         /// </summary>
@@ -30,31 +31,32 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
             HathoraClientConfig _hathoraClientConfig, 
             Configuration _hathoraSdkConfig = null)
         {
-            Debug.Log("[NetHathoraClientRoomApi] Initializing API...");
+            Debug.Log("[NetHathoraClientProcessesApi] Initializing API...");
             base.Init(_hathoraClientConfig, _hathoraSdkConfig);
-            this.roomApi = new RoomV2Api(base.HathoraSdkConfig);
+            this.processesApi = new ProcessesV1Api(base.HathoraSdkConfig);
         }
 
 
-        #region Client Room Async Hathora SDK Calls
+        #region Client Process Async Hathora SDK Calls
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
-        /// Gets connection info, like ip:port.
+        /// Gets process connection info, like ip:port.
         /// (!) We'll poll until we have an `Active` Status: Be sure to await!
         /// </summary>
-        /// <param name="roomId">Get this from NetHathoraClientLobbyApi join/create</param>
+        /// <param name="processId">Get this from env variable HATHORA_PROCESS_ID</param>
         /// <param name="pollIntervalSecs"></param>
         /// <param name="pollTimeoutSecs"></param>
         /// <param name="_cancelToken"></param>
-        /// <returns>Room on success</returns>
-        public async Task<ConnectionInfoV2> ClientGetConnectionInfoAsync(
-            string roomId, 
+        /// <returns>Process on success</returns>
+        public async Task<Process> ClientGetProcessInfoAsync(
+            string processId, 
             int pollIntervalSecs = 1, 
             int pollTimeoutSecs = 15,
             CancellationToken _cancelToken = default)
         {
             // Poll until we get the `Active` status.
             int pollSecondsTicked; // Duration to be logged later
-            ConnectionInfoV2 connectionInfoResponse = null;
+            Process processInfoResponse = null;
             
             for (pollSecondsTicked = 0; pollSecondsTicked < pollTimeoutSecs; pollSecondsTicked++)
             {
@@ -62,30 +64,34 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
                 
                 try
                 {
-                    connectionInfoResponse = await roomApi.GetConnectionInfoAsync(
+                    Debug.Log($"Try GetProcessInfoAsync(), " +
+                        $"appId: `{HathoraClientConfig.AppId}`, " +
+                        $"ProcessId: `{processId}`");
+                    
+                    processInfoResponse = await processesApi.GetProcessInfoAsync(
                         HathoraClientConfig.AppId, 
-                        roomId,
+                        processId,
                         _cancelToken);
                 }
                 catch(ApiException apiException)
                 {
                     HandleClientApiException(
-                        nameof(NetHathoraClientRoomApi),
-                        nameof(ClientGetConnectionInfoAsync), 
+                        nameof(NetHathoraClientProcessApi),
+                        nameof(ClientGetProcessInfoAsync), 
                         apiException);
                     return null; // fail
                 }
 
                 
-                if (connectionInfoResponse.Status == ConnectionInfoV2.StatusEnum.Active)
+                if (processInfoResponse.ExposedPort != null)
                     break;
                 
                 await Task.Delay(TimeSpan.FromSeconds(pollIntervalSecs), _cancelToken);
             }
 
             // -----------------------------------------
-            // We're done polling -- sucess or timeout?
-            if (connectionInfoResponse?.Status != ConnectionInfoV2.StatusEnum.Active)
+            // We're done polling -- success or timeout?
+            if (processInfoResponse?.ExposedPort == null)
             {
                 Debug.LogError("[NetHathoraClientAuthApi.ClientGetConnectionInfoAsync] " +
                     "Error: Timed out");
@@ -93,12 +99,12 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
             }
 
             // Success
-            Debug.Log($"[NetHathoraClientRoomApi.ClientGetConnectionInfoAsync] Success " +
+            Debug.Log($"[NetHathoraClientProcessesApi.ClientGetConnectionInfoAsync] Success " +
                 $"(after {pollSecondsTicked}s polling): <color=yellow>" +
-                $"connectionInfoResponse: {connectionInfoResponse.ToJson()}</color>");
+                $"connectionInfoResponse: {processInfoResponse.ToJson()}</color>");
 
-            return connectionInfoResponse;
+            return processInfoResponse;
         }
-        #endregion // Client Room Async Hathora SDK Calls
+        #endregion // Client Process Async Hathora SDK Calls
     }
 }

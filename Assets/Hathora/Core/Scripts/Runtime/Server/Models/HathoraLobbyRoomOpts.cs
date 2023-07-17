@@ -3,6 +3,7 @@
 using Hathora.Cloud.Sdk.Model;
 using UnityEngine;
 using System;
+using UnityEngine.Serialization;
 
 namespace Hathora.Core.Scripts.Runtime.Server.Models
 {
@@ -22,8 +23,11 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         /// Since this Enum isn't alphabatized, also care if you Sort() the list.
         /// </summary>
         public Region HathoraRegion
-        { 
-            get => _hathoraRegion;
+        {
+            get => (int)_hathoraRegion == 0
+                ? Region.Seattle // Fallback for 0-based index
+                : _hathoraRegion;
+            
             set => _hathoraRegion = value;
         }
 
@@ -32,16 +36,16 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         /// Since this Enum isn't alphabatized, also care if you Sort() the list.
         /// </summary>
         [SerializeField]
-        private int _regionSelectedIndex = (int)Region.Seattle;
+        private int hathoraRegionSelectedIndexUi = (int)Region.Seattle;
         
         /// <summary>
         /// (!) Hathora SDK Enums starts at index 1; not 0: Care of indexes.
         /// Since this Enum isn't alphabatized, also care if you Sort() the list.
         /// </summary>
-        public int RegionSelectedIndex
+        public int SortedRegionSelectedIndexUi
         {
-            get => _regionSelectedIndex;
-            set => _regionSelectedIndex = value;
+            get => hathoraRegionSelectedIndexUi;
+            set => hathoraRegionSelectedIndexUi = value;
         }
 
 
@@ -57,7 +61,13 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         /// We check if there's a RoomId, and null checking leading up to it.
         /// </summary>
         public bool HasLastCreatedRoomConnection => 
-            !string.IsNullOrEmpty(_lastCreatedRoomConnection?.Room?.RoomId) && _lastCreatedRoomConnection?.ConnectionInfoV2?.ExposedPort != null;
+            !string.IsNullOrEmpty(_lastCreatedRoomConnection?.Room?.RoomId ?? string.Empty) && 
+            _lastCreatedRoomConnection?.ConnectionInfoV2?.ExposedPort != null;
+
+        /// <summary>
+        /// Checks if room has IsError *only*. Returns false if connection is null.
+        /// </summary>
+        public bool HasLastCreatedRoomConnectionErr => _lastCreatedRoomConnection?.IsError ?? false;
         #endregion // Hathora Region
     }
 }

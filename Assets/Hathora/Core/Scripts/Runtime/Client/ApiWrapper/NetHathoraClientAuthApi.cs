@@ -14,6 +14,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
     /// <summary>
     /// * Call Init() to pass UserConfig/instances.
     /// * Does not handle UI.
+    /// * Does not handle Session caching.
     /// </summary>
     public class NetHathoraClientAuthApi : NetHathoraClientApiBase
     {
@@ -23,17 +24,15 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
         /// <summary>
         /// </summary>
         /// <param name="_hathoraClientConfig"></param>
-        /// <param name="_netSession"></param>
         /// <param name="_hathoraSdkConfig">
         /// Passed along to base for API calls as `HathoraSdkConfig`; potentially null in child.
         /// </param>
         public override void Init(
             HathoraClientConfig _hathoraClientConfig, 
-            NetSession _netSession,
             Configuration _hathoraSdkConfig = null)
         {
             Debug.Log("[NetHathoraClientAuthApi] Initializing API...");
-            base.Init(_hathoraClientConfig, _netSession, _hathoraSdkConfig);
+            base.Init(_hathoraClientConfig, _hathoraSdkConfig);
             this.authApi = new AuthV1Api(base.HathoraSdkConfig);
         }
 
@@ -61,13 +60,12 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
 
             bool isAuthed = !string.IsNullOrEmpty(anonLoginResult?.Token); 
             Debug.Log($"[NetHathoraClientAuthApi] isAuthed: {isAuthed}, " +
-                $"<color=yellow>anonLoginResult: {anonLoginResult.ToJson()}</color>");
+                $"<color=yellow>anonLoginResult: {anonLoginResult?.ToJson()}</color>");
 
-            if (!isAuthed)
-                return null;
-            
-            NetSession.InitNetSession(anonLoginResult.Token);
-            return new AuthResult(anonLoginResult.Token);
+            return isAuthed
+                ? new AuthResult(anonLoginResult.Token)
+                : null;
+
         }
         #endregion // Server Auth Async Hathora SDK Calls
     }

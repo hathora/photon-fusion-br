@@ -199,6 +199,7 @@ namespace TPSBR
 			if (_isActive == false)
 				return;
 
+			Debug.Log("Player Joined, connectionType: " + Runner.GetPlayerConnectionType(playerRef));
 			SpawnPlayer(playerRef);
 		}
 

@@ -2,14 +2,20 @@
 
 using System;
 using System.Text;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor.Build.Reporting;
+#endif // UNITY_EDITOR
 
 namespace Hathora.Core.Scripts.Runtime.Server.Models
 {
+    /// <summary>
+    /// This is technically an editor script, but we #if directive UNITY_EDITOR for those parts
+    /// </summary>
     [Serializable]
     public class HathoraAutoBuildOpts
     {
+        #region Persisted
         // Private Serialized
         /// <summary>Default: Build-Server</summary>
         [SerializeField]
@@ -36,9 +42,11 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
             set => _serverBuildExeName = value;
         }
         
+
         public bool HasServerBuildExeName =>
             !string.IsNullOrEmpty(ServerBuildExeName);
 
+        
         /// <summary>The same as checking 'Developer Build' in build opts</summary>
         [SerializeField]
         private bool _isDevBuild = true;
@@ -49,6 +57,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
             get => _isDevBuild;
             set => _isDevBuild = value;
         }
+        
         
         /// <summary>If an old build exists, first delete this dir?</summary>
         [SerializeField]
@@ -61,13 +70,33 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
             set => _cleanBuildDir = value;
         }
         
+        
+        [SerializeField]
+        private bool _overwriteDockerfile = true;
+        
+        /// <summary>
+        /// If you have edited the generated Dockerfile or need to use a
+        /// custom Dockerfile, this should be set to 'false'
+        /// </summary>
+        public bool OverwriteDockerfile
+        {
+            get => _overwriteDockerfile;
+            set => _overwriteDockerfile = value;
+        }
+        #endregion // Persisted
+
+        
+        #region Session Only (!Persistence)
+        #if UNITY_EDITOR
         private BuildReport _lastBuildReport;
         public BuildReport LastBuildReport
         {
             get => _lastBuildReport;
             set => _lastBuildReport = value;
         }
+        #endif // UNITY_EDITOR
 
+        
         private StringBuilder _lastBuildLogsStrb = new();
         public StringBuilder LastBuildLogsStrb
         {
@@ -76,5 +105,6 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         }
         public bool HasLastBuildLogsStrb => 
             LastBuildLogsStrb?.Length > 0;
+        #endregion // Session Only (!Persistence)
     }
 }

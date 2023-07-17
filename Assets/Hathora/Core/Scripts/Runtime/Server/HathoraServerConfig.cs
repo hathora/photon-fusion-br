@@ -78,7 +78,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
         /// <returns></returns>
         public bool MeetsCreateRoomBtnReqs() =>
             HathoraCoreOpts.HasAppId &&
-            HathoraLobbyRoomOpts.RegionSelectedIndex > -1 &&
+            HathoraLobbyRoomOpts.SortedRegionSelectedIndexUi > -1 &&
             HathoraLobbyRoomOpts.HathoraRegion > 0;
 
         /// <summary>

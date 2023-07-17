@@ -46,10 +46,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _defaultConfiguration:
     GameplayType: 1
-    GameMode: 4
-    ServerName: Standalone Game
-    MaxPlayers: 200
+    GameMode: 3
+    ServerName: hathoraDeployedServer
+    MaxPlayers: 5
     ExtraPeers: 0
-    Region: 
-    SessionName: 
+    Region: us
+    SessionName: hathoraDeployedServerSession
     CustomLobby: 
+    IPAddress: 0.0.0.0
+    Port: 0
+    Multiplay: 0
+    QueryProtocol: 0
+    Matchmaking: 0
+    Backfill: 0

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c30145f2c2cb584b9da6d84e7ab9973, type: 3}
   m_Name: GlobalSettings
   m_EditorClassIdentifier: 
+  HathoraServerConfig: {fileID: 11400000, guid: 4dcc03532298350489fbdb4b195da633, type: 2}
   RunnerPrefab: {fileID: 3427936558554746844, guid: 36ba3480ded34f441a0d952459870465, type: 3}
   LoadingScene: LoadingScene
   MenuScene: Menu

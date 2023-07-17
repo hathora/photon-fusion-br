@@ -1,5 +1,6 @@
 // dylan@hathora.dev
 
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace Hathora.Core.Scripts.Runtime.Common.Extensions
@@ -16,15 +17,20 @@ namespace Hathora.Core.Scripts.Runtime.Common.Extensions
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static string SplitPascalCase(this string str) =>
+        public static string SplitPascalCase(this string str)
+        {
+            if (string.IsNullOrEmpty(str))
+                return null;
+            
             // ##############################################
             // "WashingtonDC" becomes "Washington DC"
             // "WashingtonDc" becomes "Washington Dc"
             // "WashingtonDCFoo" becomes "Washington DC Foo"
             // ##############################################
-            Regex.Replace(
+            return Regex.Replace(
                 str,
                 @"(?<=\p{Ll})(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})",
                 " ");
+        }
     }
 }

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Api;
 using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
+using Hathora.Core.Scripts.Runtime.Common.Utils;
 using UnityEngine;
 
 namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
@@ -17,8 +18,8 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
     public class HathoraServerBuildApi : HathoraServerApiBase
     {
         private readonly BuildV1Api buildApi;
+        private volatile bool uploading;
 
-        
         /// <summary>
         /// </summary>
         /// <param name="_hathoraServerConfig"></param>
@@ -69,46 +70,87 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
 
         /// <summary>
         /// Wrapper for `RunBuildAsync` to upload the _tarball after calling CreateBuildAsync().
-        /// (!) After this is done
+        /// (!) Temporarily sets the Timeout to 15min (900k ms) to allow for large builds.
+        /// (!) After this is done, you probably want to call GetBuildInfoAsync().
         /// </summary>
         /// <param name="_buildId"></param>
         /// <param name="_pathToTarGzBuildFile">Ensure path is normalized</param>
         /// <param name="_cancelToken"></param>
-        /// <returns>Returns streamLogs on success</returns>
-        public async Task<string> RunCloudBuildAsync(
+        /// <returns>Returns streamLogs (List of chunks) on success</returns>
+        public async Task<List<string>> RunCloudBuildAsync(
             double _buildId, 
             string _pathToTarGzBuildFile,
             CancellationToken _cancelToken = default)
         {
-            byte[] cloudRunBuildResultLogsStream;
-                
+            byte[] cloudRunBuildResultLogsStream = null;
+
+            #region Timeout Workaround
+            // Temporarily sets the Timeout to 15min (900k ms) to allow for large builds.
+            // Since Timeout has no setter, we need to temporarily make a new api instance.
+            Configuration highTimeoutConfig = HathoraUtils.DeepCopy(base.HathoraSdkConfig);
+            highTimeoutConfig.Timeout = (int)TimeSpan.FromMinutes(15).TotalMilliseconds;
+
+            BuildV1Api highTimeoutBuildApi = new(highTimeoutConfig);
+            #endregion // Timeout Workaround
+         
+            uploading = true;
+
             try
             {
-                await using FileStream fileStream = new(_pathToTarGzBuildFile, FileMode.Open, FileAccess.Read);
-                
-                cloudRunBuildResultLogsStream = await buildApi.RunBuildAsync(
+                _ = startProgressNoticeAsync(); // !await
+
+                await using FileStream fileStream = new(
+                    _pathToTarGzBuildFile,
+                    FileMode.Open,
+                    FileAccess.Read);
+
+                // (!) Using the `highTimeoutBuildApi` workaround instance here
+                cloudRunBuildResultLogsStream = await highTimeoutBuildApi.RunBuildAsync(
                     HathoraServerConfig.HathoraCoreOpts.AppId,
                     _buildId,
                     fileStream,
                     _cancelToken);
             }
+            catch (TaskCanceledException)
+            {
+                Debug.Log("[HathoraServerBuildApi.RunCloudBuildAsync] Task Cancelled || timed out");
+            }
             catch (ApiException apiException)
             {
                 HandleServerApiException(
                     nameof(HathoraServerBuildApi),
-                    nameof(RunCloudBuildAsync), 
+                    nameof(RunCloudBuildAsync),
                     apiException);
+
                 return null;
+            }
+            finally
+            {
+                uploading = false;
             }
 
             Debug.Log($"[HathoraServerBuildApi.RunCloudBuildAsync] Done - " +
                 "to know if success, call buildApi.RunBuild");
 
             // (!) Unity, by default, truncates logs to 1k chars (including callstack).
-            string cloudRunBuildResultLogsStr = Encoding.UTF8.GetString(cloudRunBuildResultLogsStream);
-            onRunCloudBuildDone(cloudRunBuildResultLogsStr);
+            string encodedLogs = Encoding.UTF8.GetString(cloudRunBuildResultLogsStream);
+            List<string> logChunks = onRunCloudBuildDone(encodedLogs);
             
-            return cloudRunBuildResultLogsStr;  // streamLogs 
+            return logChunks;  // streamLogs 
+        }
+
+        private async Task startProgressNoticeAsync()
+        {
+            TimeSpan delayTimespan = TimeSpan.FromSeconds(5);
+            StringBuilder sb = new("...");
+            
+            while (uploading)
+            {
+                Debug.Log($"[HathoraServerBuild] Uploading {sb}");
+                
+                await Task.Delay(delayTimespan);
+                sb.Append(".");
+            }
         }
 
         /// <summary>
@@ -116,21 +158,25 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
         /// (!) Unity, by default, truncates logs to 1k chars (including callstack).
         /// </summary>
         /// <param name="_cloudRunBuildResultLogsStr"></param>
-        private static void onRunCloudBuildDone(string _cloudRunBuildResultLogsStr)
+        /// <returns>List of log chunks</returns>
+        private static List<string> onRunCloudBuildDone(string _cloudRunBuildResultLogsStr)
         {
             // Split string into lines
-            string[] lines = _cloudRunBuildResultLogsStr.Split(new[] 
+            string[] linesArr = _cloudRunBuildResultLogsStr.Split(new[] 
                 { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            List<string> lines = new (linesArr);
 
             // Group lines into chunks of 500
             const int chunkSize = 500;
-            for (int i = 0; i < lines.Length; i += chunkSize)
+            for (int i = 0; i < lines.Count; i += chunkSize)
             {
                 IEnumerable<string> chunk = lines.Skip(i).Take(chunkSize);
                 string chunkStr = string.Join("\n", chunk);
                 Debug.Log($"[HathoraServerBuildApi.onRunCloudBuildDone] result == chunk starting at line {i}: " +
                     $"\n<color=yellow>{chunkStr}</color>");
             }
+
+            return lines;
         }
 
         /// <summary>
