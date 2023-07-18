@@ -47,7 +47,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiErr)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerAppApi),
                     nameof(GetAppsAsync), 
                     apiErr);

@@ -83,7 +83,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiErr)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerDeployApi),
                     nameof(CreateDeploymentAsync), 
                     apiErr);
@@ -111,7 +111,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiErr)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerDeployApi),
                     nameof(GetDeploymentsAsync), 
                     apiErr);

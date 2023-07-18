@@ -1,0 +1,80 @@
+// Created by dylan@hathora.dev
+
+using System.Threading;
+using System.Threading.Tasks;
+using Hathora.Cloud.Sdk.Api;
+using Hathora.Cloud.Sdk.Client;
+using Hathora.Cloud.Sdk.Model;
+using Hathora.Core.Scripts.Runtime.Client.Config;
+using Hathora.Core.Scripts.Runtime.Client.Models;
+using UnityEngine;
+
+namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
+{
+    /// <summary>
+    /// * Call Init() to pass UserConfig/instances.
+    /// * Does not handle UI.
+    /// * Does not handle Session caching.
+    /// </summary>
+    public class HathoraNetClientAuthApi : HathoraNetClientApiBase
+    {
+        private AuthV1Api authApi;
+
+        
+        /// <summary>
+        /// </summary>
+        /// <param name="_hathoraClientConfig"></param>
+        /// <param name="_hathoraSdkConfig">
+        /// Passed along to base for API calls as `HathoraSdkConfig`; potentially null in child.
+        /// </param>
+        public override void Init(
+            HathoraClientConfig _hathoraClientConfig, 
+            Configuration _hathoraSdkConfig = null)
+        {
+            Debug.Log("[NetHathoraClientAuthApi] Initializing API...");
+            base.Init(_hathoraClientConfig, _hathoraSdkConfig);
+            this.authApi = new AuthV1Api(base.HathoraSdkConfig);
+        }
+
+
+        #region Client Auth Async Hathora SDK Calls
+        /// <param name="_cancelToken"></param>
+        /// <returns>Returns AuthResult on success</returns>
+        public async Task<AuthResult> ClientAuthAsync(CancellationToken _cancelToken = default)
+        {
+            LoginResponse anonLoginResult;
+            try
+            {
+                anonLoginResult = await authApi.LoginAnonymousAsync(
+                    HathoraClientConfig.AppId, 
+                    _cancelToken);
+            }
+            catch (ApiException apiException)
+            {
+                HandleApiException(
+                    nameof(HathoraNetClientAuthApi),
+                    nameof(ClientAuthAsync), 
+                    apiException);
+                return null;
+            }
+
+            bool isAuthed = !string.IsNullOrEmpty(anonLoginResult?.Token); 
+            
+            
+#if UNITY_EDITOR
+            // For security, we probably only want to log this in the editor
+            Debug.Log($"[NetHathoraClientAuthApi] isAuthed: {isAuthed}, " +
+                $"<color=yellow>anonLoginResult: {anonLoginResult?.ToJson()}</color>");
+#else
+            Debug.Log($"[NetHathoraClientAuthApi] isAuthed: {isAuthed}");
+#endif
+            
+            
+            return isAuthed
+                ? new AuthResult(anonLoginResult.Token)
+                : null;
+
+        }
+        #endregion // Server Auth Async Hathora SDK Calls
+    }
+}

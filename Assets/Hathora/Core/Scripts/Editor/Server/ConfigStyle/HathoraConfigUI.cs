@@ -3,6 +3,7 @@
 using Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth;
 using Hathora.Core.Scripts.Runtime.Server;
 using UnityEditor;
+using UnityEngine;
 
 namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle
 {
@@ -166,5 +167,21 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle
         //     GUI.enabled = true;
         // }
         #endregion // Core Buttons
+        
+        
+        #region Meta
+        /// <summary>Change the icon of the ScriptableObject in the Project window.</summary>
+        public override Texture2D RenderStaticPreview(
+            string assetPath,
+            Object[] subAssets,
+            int width,
+            int height)
+        {
+            Texture2D icon = Resources.Load<Texture2D>("Icons/HathoraSmall");
+            return icon == null 
+                ? base.RenderStaticPreview(assetPath, subAssets, width, height) // Default fallback
+                : icon; // our custom icon
+        }
+        #endregion // Meta
     }
 }

@@ -100,7 +100,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         }
         
         
-#if UNITY_SERVER || DEBUG
+#if UNITY_SERVER || UNITY_EDITOR
         /// <summary>Doc | https://hathora.dev/docs/guides/generate-admin-token</summary>
         [SerializeField, Tooltip("Set earlier from log in button")]
         private HathoraDevAuthTokenOpts _devAuthOpts = new();
@@ -111,6 +111,6 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
             get => _devAuthOpts;
             set => _devAuthOpts = value;
         }
-#endif // UNITY_SERVER || DEBUG
+#endif // UNITY_SERVER || UNITY_EDITOR
     }
 }

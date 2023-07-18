@@ -92,10 +92,17 @@ FROM ubuntu
 # Copy the server build files into the container, if Dockerfile is @ parent
 COPY {relativePathToBuildDir} .
 
+# Update system and install certificates
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    update-ca-certificates
+
+# Give execute permission for the script
 RUN chmod +x ./{_serverPaths.ExeBuildName}
 
 # Run the Linux server in headless mode as a dedicated server
-CMD ./{_serverPaths.ExeBuildName} -mode server -batchmode -nographics
+# Add `-scene <sceneName>` to load a scene before loading the mode
+CMD [""./{_serverPaths.ExeBuildName}"", ""-batchmode"", ""-nographics"", ""-mode server""]
 ";
             
             Debug.Log($"[GenerateDockerFileStr] Generated: <color=yellow>\n" +

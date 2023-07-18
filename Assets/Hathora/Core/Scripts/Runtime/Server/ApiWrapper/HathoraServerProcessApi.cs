@@ -1,5 +1,6 @@
 // Created by dylan@hathora.dev
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Api;
@@ -15,7 +16,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
     /// </summary>
     public class HathoraServerProcessApi : HathoraServerApiBase
     {
-        private readonly ProcessesV1Api processesApi;
+        private ProcessesV1Api processesApi;
 
         /// <summary>
         /// </summary>
@@ -60,7 +61,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiErr)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerProcessApi),
                     nameof(GetProcessInfoAsync), 
                     apiErr);
@@ -73,5 +74,15 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             return getProcessInfoResult;
         }
         #endregion // Server Process Async Hathora SDK Calls
+
+
+        public override void Init(
+            HathoraServerConfig _hathoraServerConfig, 
+            Configuration _hathoraSdkConfig = null)
+        {
+            Debug.Log("[HathoraServerProcessApi] Initializing API...");
+            base.Init(_hathoraServerConfig, _hathoraSdkConfig);
+            this.processesApi = new ProcessesV1Api(base.HathoraSdkConfig);
+        }
     }
 }

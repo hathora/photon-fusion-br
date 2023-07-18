@@ -1,6 +1,8 @@
 // Created by dylan@hathora.dev
 
 using Hathora.Cloud.Sdk.Client;
+using Hathora.Core.Scripts.Runtime.Common.Models;
+using UnityEngine;
 
 namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
 {
@@ -9,14 +11,35 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
     /// Both Client and Server APIs can inherit from this.
     /// Unlike Client API wrappers (since !Mono), we init via Constructor instead of Init().
     /// </summary>
-    public abstract class HathoraServerApiBase
+    public abstract class HathoraServerApiBase : MonoBehaviour, IHathoraApiBase
     {
-        protected Configuration HathoraSdkConfig { get; private set; }
+        public Configuration HathoraSdkConfig { get; set; }
         protected HathoraServerConfig HathoraServerConfig { get; private set; }
         
         // Shortcuts
-        protected string AppId => HathoraServerConfig.HathoraCoreOpts.AppId;
+        public string AppId => HathoraServerConfig.HathoraCoreOpts.AppId;
+        
 
+        #region Init
+        /// <summary>
+        /// Init anytime before calling an API. Server calls use auth token from HathoraServerInfo.
+        /// </summary>
+        /// <param name="_hathoraServerConfig">Find via Unity editor top menu: Hathora/Configuration</param>
+        /// <param name="_hathoraSdkConfig">SDKConfig that we pass to Hathora API calls</param>
+        public virtual void Init(
+            HathoraServerConfig _hathoraServerConfig,
+            Configuration _hathoraSdkConfig = null)
+        {
+            this.HathoraServerConfig = _hathoraServerConfig;
+            this.HathoraSdkConfig = _hathoraSdkConfig ?? GenerateSdkConfig();
+        }
+        
+        public Configuration GenerateSdkConfig() => new()
+        {
+            AccessToken = HathoraServerConfig.HathoraCoreOpts.DevAuthOpts.DevAuthToken,
+        };        
+        #endregion // Init
+        
 
         /// <summary>
         /// Server calls use Dev token.
@@ -32,10 +55,10 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             Configuration _hathoraSdkConfig = null)
         {
             this.HathoraServerConfig = _hathoraServerConfig;
-            this.HathoraSdkConfig = _hathoraSdkConfig ?? GenerateSdkConfig(_hathoraServerConfig);
+            this.HathoraSdkConfig = _hathoraSdkConfig ?? GenerateSdkConfig();
         }
 
-        protected static void HandleServerApiException(
+        public void HandleApiException(
             string _className, 
             string _funcName,
             ApiException _apiException)
@@ -45,11 +68,5 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
 
             throw _apiException;
         }
-
-        private static Configuration GenerateSdkConfig(HathoraServerConfig _hathoraClientConfig) => new()
-        {
-            AccessToken = _hathoraClientConfig.HathoraCoreOpts.DevAuthOpts.DevAuthToken,
-        };
-        
     }
 }

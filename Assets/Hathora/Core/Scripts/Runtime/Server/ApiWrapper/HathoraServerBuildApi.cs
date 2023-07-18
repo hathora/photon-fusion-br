@@ -55,7 +55,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiException)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerBuildApi),
                     nameof(CreateBuildAsync), 
                     apiException);
@@ -117,7 +117,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiException)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerBuildApi),
                     nameof(RunCloudBuildAsync),
                     apiException);
@@ -200,7 +200,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiException)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerBuildApi),
                     nameof(GetBuildInfoAsync), 
                     apiException);

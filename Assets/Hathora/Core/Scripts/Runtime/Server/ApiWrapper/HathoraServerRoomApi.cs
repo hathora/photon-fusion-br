@@ -173,7 +173,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             catch (ApiException apiErr)
             {
                 // HTTP err from Hathora Cloud
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerRoomApi),
                     nameof(CreateRoomAwaitActiveAsync), 
                     apiErr);
@@ -216,7 +216,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             catch (ApiException apiErr)
             {
                 // HTTP err from Hathora Cloud
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerRoomApi),
                     nameof(GetRoomInfoAsync), 
                     apiErr);
@@ -258,7 +258,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             catch (ApiException apiErr)
             {
                 // HTTP err from Hathora Cloud
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerRoomApi),
                     nameof(GetConnectionInfoAsync), 
                     apiErr);
