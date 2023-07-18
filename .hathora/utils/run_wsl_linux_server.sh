@@ -39,7 +39,7 @@
 ###################################################################################################
 # CUSTOMIZABLE >>
 export SERVER_PORT=7777 # Arbitrary, but client must match server
-exe_name="Hathora-Unity-LinuxServer.x86_64"
+exe_name="Hathora-Unity_LinuxServer.x86_64"
 path_to_linux_server="../../Build-Server/$exe_name"
 game_mode="deathmatch"
 max_players=5
