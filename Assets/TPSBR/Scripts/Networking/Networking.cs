@@ -367,10 +367,13 @@ namespace TPSBR
 				yield return new WaitUntil(() => ipPort.isDone);
 				
 				// We have ip:port from: Hathora Process || local fallback || null:0 (ip:port)
-				serverSetCustomPublicAddress(
-					ipPort.ip, 
-					ipPort.port, 
-					ref startGameArgs); // validates + logs
+                if (ipPort.port > 0)
+                {
+                    serverSetCustomPublicAddress(
+                        ipPort.ip, 
+                        ipPort.port, 
+                        ref startGameArgs); // validates + logs    
+                }
 				#endregion // Hathora Server Init
 			}
 
@@ -644,47 +647,39 @@ namespace TPSBR
 			if (USE_MOCK_HATHORA_PROCESS_ID)
 				Log("[GetHathoraServerIpPortAsync] <color=yellow>(!) USE_MOCK_HATHORA_PROCESS_ID</color>");
 			
-			Log($"[ConnectPeerCoroutine] HATHORA_PROCESS_ID: {HATHORA_PROCESS_ID}");
+			Log($"[ConnectPeerCoroutine.GetHathoraServerIpPortAsync] " +
+                $"HATHORA_PROCESS_ID: {HATHORA_PROCESS_ID}");
 			bool hasHathoraProcId = !string.IsNullOrEmpty(HATHORA_PROCESS_ID);
 
-			// -----------------------------------------------------
-			// Get ip:port from Hathora ProcessId; OR local fallback
-			(IPAddress ip, ushort port) ipPort = default;
-			
-			if (hasHathoraProcId)
-			{
-				// Coroutine workaround for async/await: Loop the Task until we have a result =>
-				try
-				{
-					ipPort = await hathoraServerGetProcessAsync(HATHORA_PROCESS_ID);
-				}
-				catch (Exception e)
-				{
-					Debug.LogError($"[initServerSetPublicAddress] getIpPortFromActiveHathoraProcessAsync => Error: {e}");
-					throw;
-				}
-			}
-			// else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("LOCAL_SERVER_IP")?.Trim()) && 
-			//          !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SERVER_PORT")?.Trim()))
-			// {
-			// 	// Fallback to local server via env var info (override Photon settings)
-			// 	ipPort = getIpPortFromEnvVars();
-			// }
-			// else
-			// {
-			// 	// Fallback to server via Photon settings
-			// 	ipPort = serverGetIpPortFromPhotonSettings();
-			// }
+			(IPAddress ip, ushort port) processIpPort;
+            (IPAddress ip, ushort port, bool isDone) ipPortResult = 
+                (null, 0, true);
 
-			// -----------------------------------------------------
+            if (!hasHathoraProcId)
+                return ipPortResult; // failed, but done
+            
+            // -----------------------------------------------------
+            // Get ip:port from Hathora ProcessId; OR local fallback
+			try
+			{
+				processIpPort = await hathoraServerGetProcessAsync(HATHORA_PROCESS_ID);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError("[initServerSetPublicAddress] GetHathoraServerIpPortAsync " +
+                    $"=> Error: {e}");
+				throw;
+			}
+
 			// Done
-			(IPAddress ip, ushort port, bool isDone) ipPortResult = 
-				(ipPort.ip, ipPort.port, true);
+            ipPortResult.ip = processIpPort.ip;
+            ipPortResult.port = processIpPort.port;
 			
 			return ipPortResult;
 		}
 
-		[Obsolete("Possibly unnecesssary due to Photon's Discovery protocols")]
+        /// <summary>Used as a fallback to hathora Process info</summary>
+        /// <returns></returns>
 		private (IPAddress ip, ushort port) serverGetIpPortFromPhotonSettings()
 		{
 			
@@ -700,6 +695,10 @@ namespace TPSBR
 			return (ipAddress, port); // null is ok; Photon will handle it
 		}
 
+  //       /// <summary>Authenticate as a Client</summary>
+  //       /// <param name="hathoraClientConfig"></param>
+  //       /// <param name="_cancelToken"></param>
+  //       /// <returns></returns>
 		// private async Task<AuthResult> hathoraClientAnonAuthAsync(
 		// 	HathoraClientConfig hathoraClientConfig, 
 		// 	CancellationToken _cancelToken = default)
@@ -727,14 +726,7 @@ namespace TPSBR
 			ushort _port,
 			ref StartGameArgs _startGameArgs)
 		{
-			if (_port == 0)
-			{
-				Log($"[setCustomPublicAddress] <color=orange>Invalid port for " +
-					$"custom public address:</color> {_port}");
-				return;
-			}
-			
-			Log($"[setCustomPublicAddress] `{_ip}:{_port}`");
+            Log($"[setCustomPublicAddress] `{_ip}:{_port}`");
 
 			_startGameArgs.CustomPublicAddress = _ip == null
 				? NetAddress.Any(_port)
