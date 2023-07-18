@@ -1,16 +1,15 @@
 using System.Collections;
 using System.Threading.Tasks;
-using Fusion;
 using Hathora.Core.Scripts.Runtime.Client.Models;
 using Hathora.Demos.Shared.Scripts.Client.ClientMgr;
+using TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr;
 using UnityEngine;
 
 namespace TPSBR.HathoraPhoton
 {
-    public class HathoraClientPhotonMgr : HathoraClientMgrBase
+    public class HathoraPhotonClientMgr : HathoraClientMgrBase
     {
-        public static HathoraClientPhotonMgr Singleton { get; private set; }
-        public AuthResult AuthInfo { get; private set; }
+        public static HathoraPhotonClientMgr Singleton { get; private set; }
         
         
         #region Base implementation
@@ -22,7 +21,7 @@ namespace TPSBR.HathoraPhoton
         public override async Task<bool> ConnectAsClient()
         {
             _ = await ClientApis.ClientAuthApi.ClientAuthAsync();
-            return AuthInfo.IsSuccess;
+            return HathoraClientSession.IsAuthed;
         }
 
         public override Task StartServer()

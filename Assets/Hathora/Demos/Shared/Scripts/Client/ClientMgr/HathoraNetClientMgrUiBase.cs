@@ -7,6 +7,7 @@ using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Client;
 using Hathora.Core.Scripts.Runtime.Client.Config;
 using TMPro;
+using TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr;
 using UnityEngine;
 
 namespace Hathora.Demos.Shared.Scripts.Client.ClientMgr

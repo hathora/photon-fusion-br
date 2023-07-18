@@ -369,10 +369,9 @@ namespace TPSBR
                 case GameMode.Host:
                 {
                     // If Host, it's a Client that clicked "Create Game". For more info, find `OnCreateButton`
-                    HathoraClientPhotonMgr hathoraClientMgr = HathoraClientPhotonMgr.Singleton;
-                    yield return hathoraClientMgr._ConnectAsClient(); // Client Auth (Anon)
-                    
-                    Assert.IsTrue(hathoraClientMgr.AuthInfo.IsSuccess, "!hathoraClientMgr.AuthInfo.IsSuccess");
+                    HathoraPhotonClientMgr hathoraPhotonClientMgr = HathoraPhotonClientMgr.Singleton;
+                    yield return hathoraPhotonClientMgr._ConnectAsClient(); // Client Auth (Anon)
+                    Assert.IsTrue(hathoraPhotonClientMgr.HathoraClientSession.IsAuthed, "!IsAuthed");
                     
                     // Get the selected Photon Region -> Map to closest Hathora Region
                     HathoraRegion hathoraRegion = getHathoraRegionFromPhoton();

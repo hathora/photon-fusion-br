@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
@@ -12,11 +11,12 @@ using Hathora.Core.Scripts.Runtime.Client;
 using Hathora.Core.Scripts.Runtime.Client.Config;
 using Hathora.Core.Scripts.Runtime.Client.Models;
 using Hathora.Core.Scripts.Runtime.Common.Extensions;
+using Hathora.Demos.Shared.Scripts.Client.ClientMgr;
 using Hathora.Demos.Shared.Scripts.Client.Models;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Hathora.Demos.Shared.Scripts.Client.ClientMgr
+namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
 {
     /// <summary>
     /// - This spawns BEFORE the player, or even connected to the network.
@@ -36,7 +36,7 @@ namespace Hathora.Demos.Shared.Scripts.Client.ClientMgr
         [Header("Session, APIs")]
         [SerializeField]
         private HathoraClientSession hathoraClientSession;
-        protected HathoraClientSession HathoraClientSession => hathoraClientSession;
+        public HathoraClientSession HathoraClientSession => hathoraClientSession;
         
         [FormerlySerializedAs("ClientApis")]
         [SerializeField]
