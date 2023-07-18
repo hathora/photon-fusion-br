@@ -61,7 +61,7 @@ namespace TPSBR.HathoraPhoton
         /// IEnumerator wrapper for async Task ConnectAsClient(). yield return this.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator ConnectAsClientIEnum()
+        public IEnumerator _ConnectAsClient()
         {
             // Coroutine workaround for async/await: Loop the Task until we have a result =>
             bool isDone = false;
@@ -72,7 +72,7 @@ namespace TPSBR.HathoraPhoton
 
                     if (task.IsFaulted)
                     {
-                        Debug.LogError($"[{nameof(ConnectAsClientIEnum)}] {nameof(ConnectAsClient)} => " +
+                        Debug.LogError($"[{nameof(_ConnectAsClient)}] {nameof(ConnectAsClient)} => " +
                             $"failed: {task.Exception}");
                     }
                 });

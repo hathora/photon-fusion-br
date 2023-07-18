@@ -1,6 +1,7 @@
 // Created by dylan@hathora.dev
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -206,6 +207,12 @@ namespace Hathora.Demos.Shared.Scripts.Client.ClientMgr
             
             hathoraClientSession.Lobby = lobby;
             OnCreateOrJoinLobbyCompleteAsync(lobby);
+        }
+
+        /// <summary>CreateLobbyAsync() wrapper. yield return this.</summary>
+        public IEnumerator _CreateLobby()
+        {
+            yield break; // TODO: From Networking:380
         }
 
         /// <summary>

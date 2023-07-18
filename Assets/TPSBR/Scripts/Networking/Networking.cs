@@ -21,10 +21,12 @@ using Hathora.Core.Scripts.Runtime.Client.Config;
 using Hathora.Core.Scripts.Runtime.Client.Models;
 using Hathora.Core.Scripts.Runtime.Server;
 using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
+using TPSBR.Hathora.PhotonFusion.Common;
 using TPSBR.HathoraPhoton;
 using Application = UnityEngine.Application;
 using Assert = UnityEngine.Assertions.Assert;
 using UnityScene = UnityEngine.SceneManagement.Scene;
+using HathoraRegion = Hathora.Cloud.Sdk.Model.Region;
 
 namespace TPSBR
 {
@@ -59,6 +61,8 @@ namespace TPSBR
 		/// Create a Room (5m ttl) -> manually toss the processId here -> set USE_MOCK_HATHORA_PROCESS_ID
 		/// </summary>
 		private const string MOCK_HATHORA_PROCESS_ID = "eb4b7dc9-9c9e-4967-bf6e-d22f13b23455";
+
+        private HathoraRegion HATHORA_FALLBACK_REGION => Region.WashingtonDC;
 
         /// <summary>ByRef wrapper; passing just `ref` has issues with async/coroutines/tasks</summary>
         private class StartGameArgsContainer
@@ -355,17 +359,30 @@ namespace TPSBR
                 case GameMode.Server:
                 {
                     StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
-                    yield return hathoraConnectAsServerIEnum(startGameArgsByRef);
+                    yield return _hathoraServerGetIp(startGameArgsByRef);
                 
                     startGameArgs = startGameArgsByRef.StartGameArgs;
                     break;
                 }
 
                 case GameMode.Client:
+                case GameMode.Host:
                 {
+                    // If Host, it's a Client that clicked "Create Game". For more info, find `OnCreateButton`
                     HathoraClientPhotonMgr hathoraClientMgr = HathoraClientPhotonMgr.Singleton;
-                    yield return hathoraClientMgr.ConnectAsClientIEnum(); // Client Auth (Anon)
+                    yield return hathoraClientMgr._ConnectAsClient(); // Client Auth (Anon)
+                    
+                    Assert.IsTrue(hathoraClientMgr.AuthInfo.IsSuccess, "!hathoraClientMgr.AuthInfo.IsSuccess");
+                    
+                    // Get the selected Photon Region -> Map to closest Hathora Region
+                    HathoraRegion hathoraRegion = getHathoraRegionFromPhoton();
 
+                    // TODO: Create IEnumerator wrapper
+                    // // Create a Lobby 
+                    // hathoraClientMgr.CreateLobbyAsync(
+                    //     hathoraRegion, 
+                    //     CreateLobbyRequest.VisibilityEnum.Public);
+                    
                     break;
                 }
             }
@@ -624,10 +641,22 @@ namespace TPSBR
 			Log($"ConnectPeerCoroutine() finished");
 		}
 
+        private HathoraRegion getHathoraRegionFromPhoton()
+        {
+            string photonRegionStr = PhotonAppSettings.Instance.AppSettings.FixedRegion;
+            bool hasPhotonRegionStr = !string.IsNullOrEmpty(photonRegionStr);
+
+            HathoraRegion hathoraRegion = hasPhotonRegionStr
+                ? (HathoraRegion)HathoraRegionMap.GetHathoraRegionFromPhoton(photonRegionStr)
+                : HATHORA_FALLBACK_REGION;
+
+            return hathoraRegion;
+        }
+
         /// <summary>TODO: Throw this in a Hathora server script</summary>
         /// <param name="_startGameArgsContainer">ByRef</param>
         /// <returns></returns>
-        private IEnumerator hathoraConnectAsServerIEnum(StartGameArgsContainer _startGameArgsContainer)
+        private IEnumerator _hathoraServerGetIp(StartGameArgsContainer _startGameArgsContainer)
         {
             // ===============================================================================
             //

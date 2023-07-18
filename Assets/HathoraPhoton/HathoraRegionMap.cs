@@ -38,6 +38,9 @@ namespace TPSBR.Hathora.PhotonFusion.Common
         // ###################################
         #endregion // Region Map Info
     
+        public static int GetHathoraRegionFromPhoton(string _photonRegion) => 
+            GetPhotonToHathoraRegionMap()[_photonRegion];
+        
         /// <summary>
         /// Photon uses implicit strings; Hathora uses 1-based enum.
         /// (!) Photon "asia" and "kr" regions are both mapped to Hathora "Singapore".
