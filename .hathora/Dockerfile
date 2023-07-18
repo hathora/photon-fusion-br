@@ -8,7 +8,7 @@ FROM ubuntu
 # Copy the server build files into the container, if Dockerfile is @ parent
 COPY ./Build-Server .
 
-# Update system and install certificates
+# Update system and install certificates: Prevents TLS/SSL (https) errs
 RUN apt-get update && \
     apt-get install -y ca-certificates && \
     update-ca-certificates
