@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
@@ -117,16 +118,22 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         
         
         #region Interactions from UI
+        
+        
+        #region Interactions from UI -> Required Overrides
         public abstract Task<bool> ConnectAsClient();
         public abstract Task StartServer();
         public abstract Task StartClient();
         public abstract Task StopHost();
         public abstract Task StopServer();
-        public abstract Task StopClient();      
+        public abstract Task StopClient(); 
+        #endregion // Interactions from UI -> Required Overrides
+       
         
+        #region Interactions from UI -> Optional overrides
         /// <summary>If !success, call OnConnectFailed().</summary>
         /// <returns>isValid</returns>
-        protected bool ValidateServerConfigConnectionInfo()
+        protected virtual bool ValidateServerConfigConnectionInfo()
         {
             // Validate host:port connection info
             if (!hathoraClientSession.CheckIsValidServerConnectionInfo())
@@ -136,12 +143,6 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
             }
             
             return true; // success
-        }
-
-        protected virtual void OnConnectFailed(string _friendlyReason)
-        {
-            IsConnecting = false;
-            netClientMgrUiBase.OnJoinLobbyFailed(_friendlyReason);
         }
 
         /// <summary>Sets `IsConnecting` + logs ip:port (transport).</summary>
@@ -154,31 +155,29 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
                 $"{hathoraClientSession.GetServerInfoIpPort()} via " +
                 $"NetworkManager.{_transportName} transport");
         }
-        
-        protected virtual void OnConnectSuccess()
-        {
-            IsConnecting = false;
-            netClientMgrUiBase.OnJoinLobbyConnectSuccess();
-        }
+        #endregion // Interactions from UI -> Optional overrides
 
+        
         /// <summary>
         /// Auths anonymously => Creates new hathoraClientSession.
         /// </summary>
-        public async Task AuthLoginAsync()
+        public async Task<AuthResult> AuthLoginAsync(CancellationToken _cancelToken = default)
         {
             AuthResult result;
             try
             {
-                result = await clientApis.ClientAuthApi.ClientAuthAsync();
+                result = await clientApis.ClientAuthApi.ClientAuthAsync(_cancelToken);
             }
             catch
             {
                 OnAuthLoginComplete(_isSuccess:false);
-                return;
+                return null;
             }
            
             hathoraClientSession.InitNetSession(result.PlayerAuthToken);
             OnAuthLoginComplete(result.IsSuccess);
+
+            return result;
         }
 
         /// <summary>
@@ -186,9 +185,13 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         /// </summary>
         /// <param name="_region"></param>
         /// <param name="_visibility"></param>
-        public async Task CreateLobbyAsync(
+        /// <param name="_initConfigJsonStr"></param>
+        /// <param name="_cancelToken"></param>
+        public async Task<Lobby> CreateLobbyAsync(
             Region _region,
-            CreateLobbyRequest.VisibilityEnum _visibility = CreateLobbyRequest.VisibilityEnum.Public)
+            CreateLobbyRequest.VisibilityEnum _visibility = CreateLobbyRequest.VisibilityEnum.Public,
+            string _initConfigJsonStr = "{}",
+            CancellationToken _cancelToken = default)
         {
             Lobby lobby;
             try
@@ -196,57 +199,65 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
                 lobby = await clientApis.ClientLobbyApi.ClientCreateLobbyAsync(
                     hathoraClientSession.PlayerAuthToken,
                     _visibility,
-                    _region);
+                    _region,
+                    _initConfigJsonStr,
+                    _cancelToken);
             }
             catch (Exception e)
             {
                 Debug.LogWarning(e.Message);
                 OnCreateOrJoinLobbyCompleteAsync(null);
-                return;
+                return null;
             }
             
             hathoraClientSession.Lobby = lobby;
             OnCreateOrJoinLobbyCompleteAsync(lobby);
-        }
 
-        /// <summary>CreateLobbyAsync() wrapper. yield return this.</summary>
-        public IEnumerator _CreateLobby()
-        {
-            yield break; // TODO: From Networking:380
+            return lobby;
         }
 
         /// <summary>
         /// Gets lobby info, if you arleady know the roomId.
         /// (!) Creating a lobby will automatically return the lobbyInfo (along with the roomId).
         /// </summary>
-        public async Task GetLobbyInfoAsync(string _roomId)
+        public async Task<Lobby> GetLobbyInfoAsync(
+            string _roomId, 
+            CancellationToken _cancelToken = default)
         {
             Lobby lobby;
             try
             {
-                lobby = await clientApis.ClientLobbyApi.ClientGetLobbyInfoAsync(_roomId);
+                lobby = await clientApis.ClientLobbyApi.ClientGetLobbyInfoAsync(
+                    _roomId,
+                    _cancelToken);
             }
             catch (Exception e)
             {
                 Debug.LogWarning(e.Message);
                 OnCreateOrJoinLobbyCompleteAsync(null);
-                return;
+                return null;
             }
 
             hathoraClientSession.Lobby = lobby;
             OnCreateOrJoinLobbyCompleteAsync(lobby);
+
+            return lobby;
         }
         
         /// <summary>Public lobbies only.</summary>
         /// <param name="_region">
         /// TODO (to confirm): null region returns *all* region lobbies?
         /// </param>
-        public async Task ViewPublicLobbies(Region? _region = null)
+        public async Task<List<Lobby>> ViewPublicLobbies(
+            Region? _region = null,
+            CancellationToken _cancelToken = default)
         {
             List<Lobby> lobbies;
             try
             {
-                lobbies = await clientApis.ClientLobbyApi.ClientListPublicLobbiesAsync();
+                lobbies = await clientApis.ClientLobbyApi.ClientListPublicLobbiesAsync(
+                    _region,
+                    _cancelToken);
             }
             catch (Exception e)
             {
@@ -256,6 +267,8 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
 
             hathoraClientSession.Lobbies = lobbies;
             OnViewPublicLobbiesComplete(lobbies);
+
+            return lobbies;
         }
         
         /// <summary>
@@ -283,6 +296,18 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         
         
         #region Callbacks
+        protected virtual void OnConnectFailed(string _friendlyReason)
+        {
+            IsConnecting = false;
+            netClientMgrUiBase.OnJoinLobbyFailed(_friendlyReason);
+        }
+        
+        protected virtual void OnConnectSuccess()
+        {
+            IsConnecting = false;
+            netClientMgrUiBase.OnJoinLobbyConnectSuccess();
+        }
+        
         protected virtual void OnGetActiveConnectionInfoFail()
         {
             netClientMgrUiBase.OnGetServerInfoFail();
