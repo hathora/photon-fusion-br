@@ -1,7 +1,6 @@
 // Created by dylan@hathora.dev
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -44,7 +43,9 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         private ClientApiContainer clientApis;
         protected ClientApiContainer ClientApis => clientApis;
         #endregion // Serialized Fields
-        
+
+        private bool hasUi => netClientMgrUiBase != null;
+
         
         // public static Hathora{X}Client Singleton { get; private set; } // TODO: Implement me in child
         
@@ -95,8 +96,7 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
             // Are we using any Client Config at all?
             bool hasConfig = hathoraClientConfig != null;
             bool hasAppId = hathoraClientConfig.HasAppId;
-            bool hasUiInstance = netClientMgrUiBase != null;
-            bool hasNoAppIdButHasUiInstance = !hasAppId && hasUiInstance;
+            bool hasNoAppIdButHasUiInstance = !hasAppId && hasUi;
             
             if (!hasConfig || hasNoAppIdButHasUiInstance)
                 netClientMgrUiBase.SetInvalidConfig(hathoraClientConfig);
@@ -243,11 +243,12 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
 
             return lobby;
         }
-        
+
         /// <summary>Public lobbies only.</summary>
         /// <param name="_region">
         /// TODO (to confirm): null region returns *all* region lobbies?
         /// </param>
+        /// <param name="_cancelToken"></param>
         public async Task<List<Lobby>> ViewPublicLobbies(
             Region? _region = null,
             CancellationToken _cancelToken = default)
@@ -289,7 +290,8 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
             catch (Exception e)
             {
                 Debug.LogError($"[HathoraClientBase] OnCreateOrJoinLobbyCompleteAsync: {e.Message}");
-                netClientMgrUiBase.OnGetServerInfoFail();
+                if (hasUi)
+                    netClientMgrUiBase.OnGetServerInfoFail();
                 return null; // fail
             }
             
@@ -305,18 +307,23 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         protected virtual void OnConnectFailed(string _friendlyReason)
         {
             IsConnecting = false;
-            netClientMgrUiBase.OnJoinLobbyFailed(_friendlyReason);
+            
+            if (hasUi)
+                netClientMgrUiBase.OnJoinLobbyFailed(_friendlyReason);
         }
         
         protected virtual void OnConnectSuccess()
         {
             IsConnecting = false;
-            netClientMgrUiBase.OnJoinLobbyConnectSuccess();
+            
+            if (hasUi)
+                netClientMgrUiBase.OnJoinLobbyConnectSuccess();
         }
         
         protected virtual void OnGetActiveConnectionInfoFail()
         {
-            netClientMgrUiBase.OnGetServerInfoFail();
+            if (hasUi)
+                netClientMgrUiBase.OnGetServerInfoFail();
         }
         
         /// <summary>AKA OnGetServerInfoSuccess - mostly UI</summary>
@@ -324,8 +331,7 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         {
             if (netClientMgrUiBase == null)
                 return;
-            
-            // UI >>
+
             if (string.IsNullOrEmpty(_connectionInfo?.ExposedPort?.Host))
             {
                 netClientMgrUiBase.OnGetServerInfoFail();
@@ -337,6 +343,9 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         
         protected virtual void OnAuthLoginComplete(bool _isSuccess)
         {
+            if (netClientMgrUiBase == null)
+                return;
+
             if (!_isSuccess)
             {
                 netClientMgrUiBase.OnAuthFailed();
@@ -349,13 +358,16 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         protected virtual void OnViewPublicLobbiesComplete(List<Lobby> _lobbies)
         {
             int numLobbiesFound = _lobbies?.Count ?? 0;
-            Debug.Log($"[NetHathoraPlayer] OnViewPublicLobbiesComplete: # Lobbies found: {numLobbiesFound}");
+            Debug.Log("[NetHathoraPlayer] OnViewPublicLobbiesComplete: " +
+                $"# Lobbies found: {numLobbiesFound}");
+
+            // UI >>
+            if (netClientMgrUiBase == null)
+                return;
 
             if (_lobbies == null || numLobbiesFound == 0)
-            {
                 throw new NotImplementedException("TODO: !Lobbies handling");
-            }
-            
+
             List<Lobby> sortedLobbies = _lobbies.OrderBy(lobby => lobby.CreatedAt).ToList();
             netClientMgrUiBase.OnViewLobbies(sortedLobbies);
         }
@@ -366,6 +378,10 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         /// <param name="_lobby"></param>
         protected virtual void OnCreateOrJoinLobbyCompleteAsync(Lobby _lobby)
         {
+            if (netClientMgrUiBase == null)
+                return;
+
+                // UI >>
             if (string.IsNullOrEmpty(_lobby?.RoomId))
             {
                 netClientMgrUiBase.OnCreatedOrJoinedLobbyFail();
