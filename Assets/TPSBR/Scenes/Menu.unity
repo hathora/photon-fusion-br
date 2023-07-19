@@ -4842,6 +4842,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1709435810996577419, guid: 35efa7bd1b6d4244f94d68385b45c7af, type: 3}
+      propertyPath: m_Name
+      value: DedicatedServer-HiddenByHathora
+      objectReference: {fileID: 0}
+    - target: {fileID: 1709435810996577419, guid: 35efa7bd1b6d4244f94d68385b45c7af, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4044049611845450991, guid: 35efa7bd1b6d4244f94d68385b45c7af, type: 3}
       propertyPath: m_SortingOrder
       value: 5
@@ -4876,6 +4884,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7448184080920066025, guid: 35efa7bd1b6d4244f94d68385b45c7af, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7938160757315914126, guid: 35efa7bd1b6d4244f94d68385b45c7af, type: 3}
+      propertyPath: m_Name
+      value: DedicatedServerWarning-HiddenByHathora
+      objectReference: {fileID: 0}
+    - target: {fileID: 7938160757315914126, guid: 35efa7bd1b6d4244f94d68385b45c7af, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
