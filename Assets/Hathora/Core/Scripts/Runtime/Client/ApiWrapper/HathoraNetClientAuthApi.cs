@@ -42,6 +42,8 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
         /// <returns>Returns AuthResult on success</returns>
         public async Task<AuthResult> ClientAuthAsync(CancellationToken _cancelToken = default)
         {
+            Debug.Log("[HathoraNetClientAuthApi] ClientAuthAsync");
+            
             LoginResponse anonLoginResult;
             try
             {

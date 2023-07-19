@@ -275,22 +275,28 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         /// Gets ip:port (+transport type) info so we can connect the Client via the selected transport (eg: Fishnet).
         /// AKA "GetServerInfo" (from UI). Polls until status is `Active`: May take a bit!
         /// </summary>
-        public async Task GetActiveConnectionInfo(string _roomId)
+        public async Task<ConnectionInfoV2> GetActiveConnectionInfo(
+            string _roomId, 
+            CancellationToken _cancelToken = default)
         {
             ConnectionInfoV2 connectionInfo;
             try
             {
-                connectionInfo = await clientApis.ClientRoomApi.ClientGetConnectionInfoAsync(_roomId);
+                connectionInfo = await clientApis.ClientRoomApi.ClientGetConnectionInfoAsync(
+                    _roomId, 
+                    _cancelToken: _cancelToken);
             }
             catch (Exception e)
             {
                 Debug.LogError($"[HathoraClientBase] OnCreateOrJoinLobbyCompleteAsync: {e.Message}");
                 netClientMgrUiBase.OnGetServerInfoFail();
-                return; // fail
+                return null; // fail
             }
             
             hathoraClientSession.ServerConnectionInfo = connectionInfo;
             OnGetActiveConnectionInfoComplete(connectionInfo);
+
+            return connectionInfo;
         }
         #endregion // Interactions from UI
         
@@ -313,9 +319,13 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
             netClientMgrUiBase.OnGetServerInfoFail();
         }
         
-        /// <summary>AKA OnGetServerInfoSuccess</summary>
+        /// <summary>AKA OnGetServerInfoSuccess - mostly UI</summary>
         protected virtual void OnGetActiveConnectionInfoComplete(ConnectionInfoV2 _connectionInfo)
         {
+            if (netClientMgrUiBase == null)
+                return;
+            
+            // UI >>
             if (string.IsNullOrEmpty(_connectionInfo?.ExposedPort?.Host))
             {
                 netClientMgrUiBase.OnGetServerInfoFail();
@@ -361,6 +371,10 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
                 netClientMgrUiBase.OnCreatedOrJoinedLobbyFail();
                 return;
             }
+            
+            // Success >> We may not have a UI
+            if (netClientMgrUiBase == null)
+                return;
 
             string friendlyRegion = _lobby.Region.ToString().SplitPascalCase();
             netClientMgrUiBase.OnCreatedOrJoinedLobby(

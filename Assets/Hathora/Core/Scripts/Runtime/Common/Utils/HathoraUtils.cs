@@ -2,7 +2,9 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -107,22 +109,14 @@ namespace Hathora.Core.Scripts.Runtime.Common.Utils
             var json = JsonConvert.SerializeObject(obj);
             return JsonConvert.DeserializeObject<T>(json);
         }
-        
-        public class CoroutineResult<T>
-        {
-            public T Result { get; set; }
-        }
-        
-        public class WaitForTaskCompletion : CustomYieldInstruction
-        {
-            private readonly Task task;
 
-            public WaitForTaskCompletion(Task _task)
-            {
-                this.task = _task;
-            }
-
-            public override bool keepWaiting => !task.IsCompleted;
+        /// <summary>This can return more than 1 IP, but we just return the 1st</summary>
+        /// <param name="_host"></param>
+        /// <returns></returns>
+        public static async Task<IPAddress> ConvertHostToIpAddress(string _host)
+        {
+            IPAddress[] ips = await Dns.GetHostAddressesAsync(_host);
+            return ips.FirstOrDefault();
         }
     }
 }

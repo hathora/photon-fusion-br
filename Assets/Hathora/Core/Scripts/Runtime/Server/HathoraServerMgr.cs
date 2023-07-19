@@ -69,6 +69,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
             // Unlike Client calls, we can init immediately @ Awake
             validateReqs();
             initApis(_hathoraSdkConfig: null); // Base will create this
+            
             _ = getHathoraProcessAsync(); // !await
         }
 

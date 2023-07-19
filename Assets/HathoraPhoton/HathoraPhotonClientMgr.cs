@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Threading.Tasks;
 using Hathora.Core.Scripts.Runtime.Client.Models;
-using Hathora.Demos.Shared.Scripts.Client.ClientMgr;
 using TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr;
 using UnityEngine;
 
@@ -18,9 +16,20 @@ namespace TPSBR.HathoraPhoton
             setSingleton();
         }
 
+        protected override void OnStart()
+        {
+            base.OnStart();
+            
+#if !UNITY_SERVER
+            _ = ConnectAsClient(); // Login passively; !await
+#endif // !UNITY_SERVER
+        }
+
         public override async Task<bool> ConnectAsClient()
         {
-            _ = await ClientApis.ClientAuthApi.ClientAuthAsync();
+            AuthResult authResult = await ClientApis.ClientAuthApi.ClientAuthAsync();
+            HathoraClientSession.InitNetSession(authResult?.PlayerAuthToken);
+            
             return HathoraClientSession.IsAuthed;
         }
 
