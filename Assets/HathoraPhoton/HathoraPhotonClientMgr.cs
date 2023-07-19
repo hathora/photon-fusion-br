@@ -8,7 +8,7 @@ namespace TPSBR.HathoraPhoton
     public class HathoraPhotonClientMgr : HathoraClientMgrBase
     {
         public static HathoraPhotonClientMgr Singleton { get; private set; }
-        
+       
         
         #region Base implementation
         protected override void OnAwake()
@@ -36,15 +36,13 @@ namespace TPSBR.HathoraPhoton
         public override Task StartServer()
         {
             throw new System.NotImplementedException();
-            return Task.CompletedTask;
         }
 
         public override Task StartClient()
         {
             throw new System.NotImplementedException();
-            return Task.CompletedTask;
         }
-
+        
         public override Task StartHost()
         {
             throw new System.NotImplementedException();
@@ -53,19 +51,16 @@ namespace TPSBR.HathoraPhoton
         public override Task StopHost()
         {
             throw new System.NotImplementedException();
-            return Task.CompletedTask;
         }
 
         public override Task StopServer()
         {
             throw new System.NotImplementedException();
-            return Task.CompletedTask;
         }
 
         public override Task StopClient()
         {
             throw new System.NotImplementedException();
-            return Task.CompletedTask;
         }
         #endregion // Base implementation
         

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Fusion;
+using TPSBR.HathoraPhoton;
 
 namespace TPSBR.UI
 {
@@ -100,8 +101,8 @@ namespace TPSBR.UI
 				MaxPlayers   = System.Int32.Parse(_maxPlayers.text),
 				ScenePath    = _mapSetups[_maps.Selection].ScenePath,
 			};
-;
-			Context.Matchmaking.CreateSession(request);
+
+			Context.HathoraMatchmaking.CreateSession(request);
 		}
 
 		private bool CanCreateGame()

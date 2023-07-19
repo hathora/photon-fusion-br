@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,13 +15,9 @@ using Fusion.Photon.Realtime;
 using Fusion.Plugin;
 using Fusion.Sockets;
 using Hathora.Cloud.Sdk.Model;
-using Hathora.Core.Scripts.Runtime.Client.ApiWrapper;
-using Hathora.Core.Scripts.Runtime.Client.Config;
-using Hathora.Core.Scripts.Runtime.Client.Models;
 using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Hathora.Core.Scripts.Runtime.Server;
 using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
-using Newtonsoft.Json;
 using TPSBR.Hathora.PhotonFusion.Common;
 using TPSBR.HathoraPhoton;
 using Application = UnityEngine.Application;
@@ -363,28 +358,40 @@ namespace TPSBR
             {
                 case GameMode.Server:
                 {
-	                StatusDescription = "Connecting to Hathora (Server)";
+	                StatusDescription = "Creating Hathora Room (as Server)";
                     StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
                     yield return new HathoraTaskUtils.WaitForTaskCompletion(
                         hathoraServerGetIpAsync(startGameArgsByRef));
-                
+                    
                     startGameArgs = startGameArgsByRef.StartGameArgs;
                     break;
                 }
                 
                 case GameMode.Host:
                 {
+	                StatusDescription = "Connecting to Hathora (as Host)";
+	                throw new NotImplementedException("Host should have been handled " +
+		                "at HathoraMatchmaking.cs, then changed to a Client");
+	                
                     // If Host, it's a Client that clicked "Create Game". For more info, find `OnCreateButton`
-                    StatusDescription = "Connecting to Hathora (Host)";
+                    StatusDescription = "Creating Hathora Lobby [Host]";
                     StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
                     yield return new HathoraTaskUtils.WaitForTaskCompletion(
-                        connectHathoraClientAsync(startGameArgsByRef));
+                        connectHathoraHostAsync(startGameArgsByRef));
+                    
+                    // For now, we d/c now that we created the server, which will show up in the browser
+                    // TODO: Join that server immediately. If we continue now, we'll get an err since we *manually* created a server.
+                    Log("Host done (created server) - returning to Menu to see the new server populated " +
+	                    "// TODO: Join that server immediately");
+
+                    StatusDescription = "Created! Returning to Menu [Host]";
+                    // yield return _disconnectHathoraHostPeerAsync(peer);
                     break;
                 }
 
                 case GameMode.Client:
                 {
-	                StatusDescription = "Connecting to Hathora (Client)";
+	                StatusDescription = "Connecting to Hathora (as Client)";
 	                break;
                 }
             }
@@ -645,13 +652,13 @@ namespace TPSBR
 
 			Log($"ConnectPeerCoroutine() finished");
 		}
-		
-        /// <summary>Game started as a client</summary>
+
+		/// <summary>Game started as a Photon "Host": We'll create a Lobby as a Client</summary>
         /// <param name="_startGameArgsByRef">Wrapped the Struct in a Class for ByRef while async</param>
-        private async Task connectHathoraClientAsync(StartGameArgsContainer _startGameArgsByRef)
+        private async Task connectHathoraHostAsync(StartGameArgsContainer _startGameArgsByRef)
         {
-	        Log(nameof(connectHathoraClientAsync));
-	        string logPefix = $"[Networking.{nameof(connectHathoraClientAsync)}]";
+	        Log(nameof(connectHathoraHostAsync));
+	        string logPefix = $"[Networking.{nameof(connectHathoraHostAsync)}]";
 
 	        HathoraPhotonClientMgr clientMgr = HathoraPhotonClientMgr.Singleton;
 	        
@@ -849,7 +856,7 @@ namespace TPSBR
 			ushort _port,
 			StartGameArgsContainer _startGameArgsContainer)
 		{
-            Log($"[setCustomPublicAddress] `{_ip}:{_port}`");
+            Log($"[setCustomPublicAddress] ip:port == `{_ip}:{_port}`");
 
 			_startGameArgsContainer.StartGameArgs.CustomPublicAddress = _ip == null
 				? NetAddress.Any(_port)

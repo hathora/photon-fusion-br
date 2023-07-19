@@ -53,9 +53,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4366737929847370980}
-  - component: {fileID: 705674781228286350}
+  - component: {fileID: 819431399}
   m_Layer: 0
-  m_Name: Matchmaking
+  m_Name: HathoraMatchmaking
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -77,7 +77,7 @@ Transform:
   m_Father: {fileID: 1893971167328665488}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &705674781228286350
+--- !u!114 &819431399
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -86,7 +86,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6377602155591414741}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85a11d1d20c176e4d96b7f7983531630, type: 3}
+  m_Script: {fileID: 11500000, guid: 26056e2202684084baac3efd92ecbd89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   IsJoiningToLobby: 0
@@ -362,15 +362,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3734733792918972313, guid: 3f938544efb06df40b044953cf2402f2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -0.6
       objectReference: {fileID: 0}
     - target: {fileID: 3734733792918972313, guid: 3f938544efb06df40b044953cf2402f2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1
+      value: 1.4
       objectReference: {fileID: 0}
     - target: {fileID: 3734733792918972313, guid: 3f938544efb06df40b044953cf2402f2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -4
+      value: -2.15
       objectReference: {fileID: 0}
     - target: {fileID: 7395547356739761919, guid: 3f938544efb06df40b044953cf2402f2, type: 3}
       propertyPath: m_RootOrder
@@ -474,7 +474,7 @@ MonoBehaviour:
     Map: {fileID: 0}
     Backfill: {fileID: 0}
     PlayerPreview: {fileID: 0}
-    Matchmaking: {fileID: 705674781228286350}
+    Matchmaking: {fileID: 0}
     Matchmaker: {fileID: 3071474178267500389}
 --- !u!114 &2758504172944162673 stripped
 MonoBehaviour:
