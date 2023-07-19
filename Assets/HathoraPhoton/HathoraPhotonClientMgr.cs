@@ -45,6 +45,11 @@ namespace TPSBR.HathoraPhoton
             return Task.CompletedTask;
         }
 
+        public override Task StartHost()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public override Task StopHost()
         {
             throw new System.NotImplementedException();
