@@ -124,6 +124,7 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         public abstract Task<bool> ConnectAsClient();
         public abstract Task StartServer();
         public abstract Task StartClient();
+        public abstract Task StartHost();
         public abstract Task StopHost();
         public abstract Task StopServer();
         public abstract Task StopClient(); 
