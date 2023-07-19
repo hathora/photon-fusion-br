@@ -19,6 +19,7 @@ using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Client.ApiWrapper;
 using Hathora.Core.Scripts.Runtime.Client.Config;
 using Hathora.Core.Scripts.Runtime.Client.Models;
+using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Hathora.Core.Scripts.Runtime.Server;
 using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
 using TPSBR.Hathora.PhotonFusion.Common;
@@ -354,37 +355,33 @@ namespace TPSBR
                 startGameArgs.SessionProperties = CreateSessionProperties(peer.Request);
             }
             
+            
+            #region Hathora
+            // ################################################################################################
             switch (peer.GameMode)
             {
                 case GameMode.Server:
                 {
                     StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
-                    yield return _hathoraServerGetIp(startGameArgsByRef);
+                    yield return new HathoraTaskUtils.WaitForTaskCompletion(
+                        hathoraServerGetIp(startGameArgsByRef));
                 
                     startGameArgs = startGameArgsByRef.StartGameArgs;
                     break;
                 }
-
+                
                 case GameMode.Client:
                 case GameMode.Host:
                 {
                     // If Host, it's a Client that clicked "Create Game". For more info, find `OnCreateButton`
-                    HathoraPhotonClientMgr hathoraPhotonClientMgr = HathoraPhotonClientMgr.Singleton;
-                    yield return hathoraPhotonClientMgr._ConnectAsClient(); // Client Auth (Anon)
-                    Assert.IsTrue(hathoraPhotonClientMgr.HathoraClientSession.IsAuthed, "!IsAuthed");
-                    
-                    // Get the selected Photon Region -> Map to closest Hathora Region
-                    HathoraRegion hathoraRegion = getHathoraRegionFromPhoton();
-
-                    // TODO: Create IEnumerator wrapper
-                    // // Create a Lobby 
-                    // hathoraClientMgr.CreateLobbyAsync(
-                    //     hathoraRegion, 
-                    //     CreateLobbyRequest.VisibilityEnum.Public);
-                    
+                    yield return new HathoraTaskUtils.WaitForTaskCompletion(
+                        connectHathoraClient());
                     break;
                 }
             }
+            // ################################################################################################
+            #endregion // Hathora
+            
 
             if (peer.Request.IPAddress.HasValue() == true)
 			{
@@ -639,8 +636,38 @@ namespace TPSBR
 
 			Log($"ConnectPeerCoroutine() finished");
 		}
+        
+        /// <summary>Game started as a client</summary>
+        private async Task connectHathoraClient()
+        {
+            // Coroutine workaround for async/await: Loop the Task until we have a result =>
+            HathoraPhotonClientMgr hathoraPhotonClientMgr = HathoraPhotonClientMgr.Singleton;
+            bool isSuccess = false;
 
-        private HathoraRegion getHathoraRegionFromPhoton()
+            try
+            {
+                isSuccess = await hathoraPhotonClientMgr.ConnectAsClient();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Networking.{nameof(connectHathoraClient)}] " +
+                    $"{nameof(hathoraPhotonClientMgr.ConnectAsClient)} => failed: {e.Message}");
+                throw;
+            }
+            
+            Assert.IsTrue(isSuccess, "!IsAuthed");
+                    
+            // Get the selected Photon Region -> Map to closest Hathora Region
+            HathoraRegion hathoraRegion = getHathoraRegionFromPhoton();
+
+            // TODO: Create IEnumerator wrapper
+            // // Create a Lobby 
+            // hathoraClientMgr.CreateLobbyAsync(
+            //     hathoraRegion, 
+            //     CreateLobbyRequest.VisibilityEnum.Public);
+        }
+
+            private HathoraRegion getHathoraRegionFromPhoton()
         {
             string photonRegionStr = PhotonAppSettings.Instance.AppSettings.FixedRegion;
             bool hasPhotonRegionStr = !string.IsNullOrEmpty(photonRegionStr);
@@ -654,8 +681,9 @@ namespace TPSBR
 
         /// <summary>TODO: Throw this in a Hathora server script</summary>
         /// <param name="_startGameArgsContainer">ByRef</param>
-        /// <returns></returns>
-        private IEnumerator _hathoraServerGetIp(StartGameArgsContainer _startGameArgsContainer)
+        /// <returns>ByRef changes in _startGameArgsContainer</returns>
+        private async Task<(IPAddress ip, ushort port)> hathoraServerGetIp(
+            StartGameArgsContainer _startGameArgsContainer)
         {
             // ===============================================================================
             //
@@ -676,18 +704,17 @@ namespace TPSBR
             // ===============================================================================
 				
             // Coroutine workaround for async/await: Loop the Task until we have a result =>
-            (IPAddress ip, ushort port, bool isDone) ipPort = default;
-            GetHathoraServerIpPortAsync().ContinueWith(task =>
+            (IPAddress ip, ushort port) ipPort;
+            try
             {
-                ipPort = task.Result;
-					
-                if (task.IsFaulted)
-                    Debug.LogError($"{nameof(GetHathoraServerIpPortAsync)} failed: {task.Exception}");
-            });
-				
-            // Coroutine workaround for async/await's `await` =>
-            yield return new WaitUntil(() => ipPort.isDone);
-				
+                ipPort = await GetHathoraServerIpPortAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"{nameof(GetHathoraServerIpPortAsync)} failed: {e.Message}");
+                throw;
+            }
+
             // We have ip:port from: Hathora Process || local fallback || null:0 (ip:port)
             if (ipPort.port > 0)
             {
@@ -696,6 +723,8 @@ namespace TPSBR
                     ipPort.port, 
                     _startGameArgsContainer); // validates + logs    
             }
+
+            return ipPort;
         }
 
 
@@ -704,7 +733,7 @@ namespace TPSBR
 		/// Gets processsId from env var ->   
 		/// </summary>
 		/// <returns></returns>
-		private async Task<(IPAddress ip, ushort port, bool isDone)> GetHathoraServerIpPortAsync()
+		private async Task<(IPAddress ip, ushort port)> GetHathoraServerIpPortAsync()
 		{
 			// Mock it, or get the actual env var?
 			string HATHORA_PROCESS_ID = USE_MOCK_HATHORA_PROCESS_ID && !string.IsNullOrEmpty(MOCK_HATHORA_PROCESS_ID)
@@ -718,12 +747,10 @@ namespace TPSBR
                 $"HATHORA_PROCESS_ID: {HATHORA_PROCESS_ID}");
 			bool hasHathoraProcId = !string.IsNullOrEmpty(HATHORA_PROCESS_ID);
 
-			(IPAddress ip, ushort port) processIpPort;
-            (IPAddress ip, ushort port, bool isDone) ipPortResult = 
-                (null, 0, true);
+            (IPAddress ip, ushort port) processIpPort = default;
 
             if (!hasHathoraProcId)
-                return ipPortResult; // failed, but done
+                return processIpPort; // failed, but done
             
             // -----------------------------------------------------
             // Get ip:port from Hathora ProcessId; OR local fallback
@@ -739,10 +766,10 @@ namespace TPSBR
 			}
 
 			// Done
-            ipPortResult.ip = processIpPort.ip;
-            ipPortResult.port = processIpPort.port;
+            processIpPort.ip = processIpPort.ip;
+            processIpPort.port = processIpPort.port;
 			
-			return ipPortResult;
+			return processIpPort;
 		}
 
         /// <summary>Validates -> logs -> sets ip:port</summary>

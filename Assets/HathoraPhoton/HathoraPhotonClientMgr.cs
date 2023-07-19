@@ -54,31 +54,7 @@ namespace TPSBR.HathoraPhoton
             return Task.CompletedTask;
         }
         #endregion // Base implementation
-
-
-        /// <summary>
-        /// IEnumerator wrapper for async Task ConnectAsClient(). yield return this.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerator _ConnectAsClient()
-        {
-            // Coroutine workaround for async/await: Loop the Task until we have a result =>
-            bool isDone = false;
-            ConnectAsClient().ContinueWith(
-                task =>
-                {
-                    isDone = true;
-
-                    if (task.IsFaulted)
-                    {
-                        Debug.LogError($"[{nameof(_ConnectAsClient)}] {nameof(ConnectAsClient)} => " +
-                            $"failed: {task.Exception}");
-                    }
-                });
-                
-            // Coroutine workaround for async/await's `await` =>
-            yield return new WaitUntil(() => isDone);
-        }
+        
         
         protected virtual void setSingleton()
         {
