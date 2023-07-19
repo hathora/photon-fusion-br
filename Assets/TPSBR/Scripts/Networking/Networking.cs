@@ -363,6 +363,7 @@ namespace TPSBR
             {
                 case GameMode.Server:
                 {
+	                StatusDescription = "Connecting to Hathora (Server)";
                     StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
                     yield return new HathoraTaskUtils.WaitForTaskCompletion(
                         hathoraServerGetIpAsync(startGameArgsByRef));
@@ -374,10 +375,17 @@ namespace TPSBR
                 case GameMode.Host:
                 {
                     // If Host, it's a Client that clicked "Create Game". For more info, find `OnCreateButton`
+                    StatusDescription = "Connecting to Hathora (Host)";
                     StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
                     yield return new HathoraTaskUtils.WaitForTaskCompletion(
                         connectHathoraClientAsync(startGameArgsByRef));
                     break;
+                }
+
+                case GameMode.Client:
+                {
+	                StatusDescription = "Connecting to Hathora (Client)";
+	                break;
                 }
             }
             // ################################################################################################
