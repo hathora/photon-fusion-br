@@ -7,7 +7,9 @@ using Fusion.Photon.Realtime;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Newtonsoft.Json;
+using TMPro;
 using TPSBR.Hathora.PhotonFusion.Common;
+using UnityEngine;
 using HathoraRegion = Hathora.Cloud.Sdk.Model.Region;
 using Assert = UnityEngine.Assertions.Assert;
 using Debug = UnityEngine.Debug;
@@ -17,6 +19,19 @@ namespace TPSBR.HathoraPhoton
     /// <summary>Early logic originally ported over from Photon's Networking.cs</summary>
     public class HathoraMatchmaking : Matchmaking
     {
+        #region Serialized
+        [Header("Pre-Create")]
+        [SerializeField]
+        private TextMeshProUGUI hathoraCreateStatusTxt;
+        
+        [Header("Post-Create")]
+        [SerializeField]
+        private TextMeshProUGUI hathoraCreateDoneStatusTxt;
+        [SerializeField]
+        private GameObject createSettingsModalPnl;
+        #endregion // Serialized
+        
+        
         private static HathoraRegion HATHORA_FALLBACK_REGION => HathoraRegion.WashingtonDC;
         private static HathoraPhotonClientMgr clientMgr => HathoraPhotonClientMgr.Singleton;
 
@@ -30,7 +45,7 @@ namespace TPSBR.HathoraPhoton
         
         /// <summary>Host only</summary>
         /// <param name="request"></param>
-        public override void CreateSession(SessionRequest request)
+        public override async void CreateSession(SessionRequest request)
         {
             if (request.GameMode != GameMode.Host)
             {
@@ -42,14 +57,13 @@ namespace TPSBR.HathoraPhoton
             if (request.GameMode == GameMode.Host)
             {
                 // ##############################################################
-                // Acting as a Hathora Client:
+                // "Host" Acting as a Hathora Client:
                 // 1. Ensure authed; already via HathoraPhotonClientMgr.Awake()
                 // 2. Create Lobby (a Room with server browsing capabilities)
-                // 3. Get connection info (host:port)
-                // 4. Convert host name to ip address
-                // 5. Show Menu -> our new Lobby should show. OR, join directly.
+                // 3. Hide the modal create settings window and show success status
+                // You should now be able to see the lobby within the list
                 // ##############################################################
-                _ = createSessionAsync(request);
+                await createHathoraSessionAsync(request);
             }
         }
         #endregion // Base
@@ -57,34 +71,36 @@ namespace TPSBR.HathoraPhoton
 
         /// <summary>High-level, async Task wrapper for CreateSession</summary>
         /// <param name="_request"></param>
-        private async Task createSessionAsync(SessionRequest _request)
+        private async Task createHathoraSessionAsync(SessionRequest _request)
         {
+            string logPrefix = $"[HathoraMatchmaking.{nameof(createHathoraSessionAsync)}]";
+            Debug.Log($"{logPrefix} (as Photon 'Host')");
+            
             // 1. Ensure authed; already via HathoraPhotonClientMgr.Awake()
             if (!clientMgr.HathoraClientSession.IsAuthed)
             {
-                Debug.Log("[HathoraMatchmaking.createSessionAsync] !IsAuthed");
+                Debug.Log($"{logPrefix} !IsAuthed");
                 return;
             }
             
             // 2. Create Lobby (a Room with server browsing capabilities)
             Lobby lobby = await photonHostCreateHathoraLobbyAsync(_request);
+            Assert.IsNotNull(lobby?.RoomId, $"{logPrefix} Expected Lobby?.RoomId");
+
+            // 3. Hide the modal create settings window and show success status
+            onCreateLobbySuccessUI(lobby);
+        }
+
+        /// <summary>
+        /// 3. Hide the modal create settings window and show success status
+        /// </summary>
+        private void onCreateLobbySuccessUI(Lobby _lobby)
+        {
+            Debug.Log($"[HathoraMatchmaking] onCreateLobbySuccessUI");
             
-            // 3. Get connection info (host:port)
-            ConnectionInfoV2 connectionInfo = await clientMgr.GetActiveConnectionInfo(lobby.RoomId);
-       
-            // 4. Convert host name to ip address
-            IPAddress ip = await HathoraUtils.ConvertHostToIpAddress(connectionInfo.ExposedPort.Host);
-            ushort port = (ushort)connectionInfo.ExposedPort.Port;
-            
-            //// 5. Show Menu -> our new Lobby should show.
-            // TODO: Find `UICreateSessionView` GameObject -> !SetActive
-            
-            // // 5. Join game directly as a Client
-            _request.IPAddress = ip.ToString();
-            _request.Port = port;
-            _request.GameMode = GameMode.Client;
-            
-            Global.Networking.StartGame(_request); // TODO: Doesn't seem to work well
+            hathoraCreateDoneStatusTxt.text = $"Created Lobby: {_lobby.RoomId}";
+            hathoraCreateDoneStatusTxt.SetActive(true);
+            createSettingsModalPnl.SetActive(false);
         }
 
         /// <summary>

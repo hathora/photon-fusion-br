@@ -371,22 +371,7 @@ namespace TPSBR
                 {
 	                StatusDescription = "Connecting to Hathora (as Host)";
 	                throw new NotImplementedException("Host should have been handled " +
-		                "at HathoraMatchmaking.cs, then changed to a Client");
-	                
-                    // If Host, it's a Client that clicked "Create Game". For more info, find `OnCreateButton`
-                    StatusDescription = "Creating Hathora Lobby [Host]";
-                    StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
-                    yield return new HathoraTaskUtils.WaitForTaskCompletion(
-                        connectHathoraHostAsync(startGameArgsByRef));
-                    
-                    // For now, we d/c now that we created the server, which will show up in the browser
-                    // TODO: Join that server immediately. If we continue now, we'll get an err since we *manually* created a server.
-                    Log("Host done (created server) - returning to Menu to see the new server populated " +
-	                    "// TODO: Join that server immediately");
-
-                    StatusDescription = "Created! Returning to Menu [Host]";
-                    // yield return _disconnectHathoraHostPeerAsync(peer);
-                    break;
+		                "at HathoraMatchmaking.cs, then changed to a Client (or hid the 'Create' UI)");
                 }
 
                 case GameMode.Client:

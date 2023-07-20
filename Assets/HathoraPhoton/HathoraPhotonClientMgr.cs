@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Hathora.Core.Scripts.Runtime.Client.Models;
-using TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr;
+using Hathora.Demos.Shared.Scripts.Client.ClientMgr;
 using UnityEngine;
 
 namespace TPSBR.HathoraPhoton
