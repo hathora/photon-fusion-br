@@ -12,7 +12,7 @@ using UnityEngine.Assertions;
 
 namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
 {
-    public class HathoraServerRoomApi : HathoraServerApiBase
+    public class HathoraServerRoomApi : HathoraServerApiWrapperBase
     {
         private readonly RoomV2Api roomApi;
         private HathoraLobbyRoomOpts roomOpts => HathoraServerConfig.HathoraLobbyRoomOpts;

@@ -19,17 +19,20 @@ namespace Hathora.Demos.Shared.Scripts.Client.Models
     [Serializable]
     public struct ClientApiContainer
     {
+        [FormerlySerializedAs("clientAuthApiWrapper")]
         [Header("Hathora Client API wrappers")]
         [FormerlySerializedAs("authApi")]
         [SerializeField]
         private HathoraNetClientAuthApi clientAuthApi;
         public HathoraNetClientAuthApi ClientAuthApi => clientAuthApi;
         
+        [FormerlySerializedAs("clientLobbyApiWrapper")]
         [FormerlySerializedAs("lobbyApi")]
         [SerializeField]
         private HathoraNetClientLobbyApi clientLobbyApi;
         public HathoraNetClientLobbyApi ClientLobbyApi => clientLobbyApi;
 
+        [FormerlySerializedAs("clientRoomApiWrapper")]
         [FormerlySerializedAs("roomApi")]
         [SerializeField]
         private HathoraNetClientRoomApi clientRoomApi;

@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
 {
-    public class HathoraServerBuildApi : HathoraServerApiBase
+    public class HathoraServerBuildApi : HathoraServerApiWrapperBase
     {
         private readonly BuildV1Api buildApi;
         private volatile bool uploading;

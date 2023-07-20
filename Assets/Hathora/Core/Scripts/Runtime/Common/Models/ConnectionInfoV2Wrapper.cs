@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Hathora.Cloud.Sdk.Model;
 using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Hathora.Core.Scripts.Runtime.Common.Models
 {

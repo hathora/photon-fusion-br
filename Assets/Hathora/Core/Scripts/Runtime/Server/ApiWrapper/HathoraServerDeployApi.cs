@@ -9,13 +9,12 @@ using Hathora.Cloud.Sdk.Api;
 using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Common.Models;
-using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Hathora.Core.Scripts.Runtime.Server.Models;
 using UnityEngine;
 
 namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
 {
-    public class HathoraServerDeployApi : HathoraServerApiBase
+    public class HathoraServerDeployApi : HathoraServerApiWrapperBase
     {
         private readonly DeploymentV1Api deployApi;
         private HathoraDeployOpts deployOpts => HathoraServerConfig.HathoraDeployOpts;

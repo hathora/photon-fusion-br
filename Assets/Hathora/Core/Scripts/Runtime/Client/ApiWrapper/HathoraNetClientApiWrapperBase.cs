@@ -18,7 +18,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
     /// * Does not handle UI (see HathoraClientMgrUi).
     /// * Does not handle Session caching (see HathoraClientSession).
     /// </summary>
-    public abstract class HathoraNetClientApiBase : MonoBehaviour, IHathoraApiBase
+    public abstract class HathoraNetClientApiWrapperBase : MonoBehaviour, IHathoraApiBase
     {
         public Configuration HathoraSdkConfig { get; set; }
         protected HathoraClientConfig HathoraClientConfig { get; private set; }

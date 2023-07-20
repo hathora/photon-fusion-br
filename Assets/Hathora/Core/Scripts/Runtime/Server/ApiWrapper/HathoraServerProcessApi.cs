@@ -1,6 +1,5 @@
 // Created by dylan@hathora.dev
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Api;
@@ -14,7 +13,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
     /// Operations to get data on active and stopped processes.
     /// API Docs | https://hathora.dev/api#tag/ProcessesV1 
     /// </summary>
-    public class HathoraServerProcessApi : HathoraServerApiBase
+    public class HathoraServerProcessApi : HathoraServerApiWrapperBase
     {
         private ProcessesV1Api processesApi;
 

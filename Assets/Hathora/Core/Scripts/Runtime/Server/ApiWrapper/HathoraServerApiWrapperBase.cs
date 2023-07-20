@@ -11,7 +11,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
     /// Both Client and Server APIs can inherit from this.
     /// Unlike Client API wrappers (since !Mono), we init via Constructor instead of Init().
     /// </summary>
-    public abstract class HathoraServerApiBase : MonoBehaviour, IHathoraApiBase
+    public abstract class HathoraServerApiWrapperBase : MonoBehaviour, IHathoraApiBase
     {
         public Configuration HathoraSdkConfig { get; set; }
         protected HathoraServerConfig HathoraServerConfig { get; private set; }
@@ -50,7 +50,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
         /// <param name="_hathoraSdkConfig">
         /// Passed along to base for API calls as `HathoraSdkConfig`; potentially null in children.
         /// </param>
-        protected HathoraServerApiBase(
+        protected HathoraServerApiWrapperBase(
             HathoraServerConfig _hathoraServerConfig,
             Configuration _hathoraSdkConfig = null)
         {

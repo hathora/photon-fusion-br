@@ -1,6 +1,5 @@
 // dylan@hathora.dev
 
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace Hathora.Core.Scripts.Runtime.Common.Extensions

@@ -3,6 +3,7 @@
 using System;
 using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Hathora.Core.Scripts.Runtime.Server.Models
 {
@@ -18,9 +19,11 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
     [Serializable]
     public struct ServerApiContainer
     {
+        [FormerlySerializedAs("serverProcessApiWrapper")]
+        [FormerlySerializedAs("_serverProcessApi")]
         [Header("Hathora Server [runtime] API wrappers")]
         [SerializeField]
-        private HathoraServerProcessApi _serverProcessApi;
-        public HathoraServerProcessApi ServerProcessApi => _serverProcessApi;
+        private HathoraServerProcessApi serverProcessApi;
+        public HathoraServerProcessApi ServerProcessApi => serverProcessApi;
     }
 }

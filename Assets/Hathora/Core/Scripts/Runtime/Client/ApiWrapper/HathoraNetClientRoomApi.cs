@@ -21,7 +21,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
     /// * Does not handle UI (see HathoraClientMgrUi).
     /// * Does not handle Session caching (see HathoraClientSession).
     /// </summary>
-    public class HathoraNetClientRoomApi : HathoraNetClientApiBase
+    public class HathoraNetClientRoomApi : HathoraNetClientApiWrapperBase
     {
         private RoomV2Api roomApi;
 

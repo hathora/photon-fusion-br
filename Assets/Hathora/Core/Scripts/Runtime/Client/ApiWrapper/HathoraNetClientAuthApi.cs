@@ -21,7 +21,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
     /// * Does not handle UI (see HathoraClientMgrUi).
     /// * Does not handle Session caching (see HathoraClientSession).
     /// </summary>
-    public class HathoraNetClientAuthApi : HathoraNetClientApiBase
+    public class HathoraNetClientAuthApi : HathoraNetClientApiWrapperBase
     {
         private AuthV1Api authApi;
 

@@ -5215,7 +5215,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hathoraServerConfig: {fileID: 11400000, guid: 9ace53687c34f6d49951f41d338ab100, type: 2}
   serverApis:
-    _serverProcessApi: {fileID: 4850471487070999858}
+    serverProcessApi: {fileID: 4850471487070999858}
 --- !u!114 &4850471487070999858
 MonoBehaviour:
   m_ObjectHideFlags: 0
