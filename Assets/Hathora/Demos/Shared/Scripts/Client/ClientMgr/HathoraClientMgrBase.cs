@@ -11,17 +11,24 @@ using Hathora.Core.Scripts.Runtime.Client;
 using Hathora.Core.Scripts.Runtime.Client.Config;
 using Hathora.Core.Scripts.Runtime.Client.Models;
 using Hathora.Core.Scripts.Runtime.Common.Extensions;
-using Hathora.Demos.Shared.Scripts.Client.ClientMgr;
 using Hathora.Demos.Shared.Scripts.Client.Models;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
+namespace Hathora.Demos.Shared.Scripts.Client.ClientMgr
 {
     /// <summary>
-    /// - This spawns BEFORE the player, or even connected to the network.
-    /// - This is the entry point to call Hathora SDK: Auth, lobby, rooms, etc.
-    /// - To add API scripts: Add to the `ClientApis` serialized field.
+    /// High-level Hathora Client API wrapper manager (Singleton).
+    /// - Entry point to call Hathora SDK: Auth, lobby, rooms, etc.
+    /// - Entry point for HathoraClientConfig and SDK Config, such as AppId.
+    /// - Inits all Client API wrappers with Config + AppId.
+    /// - Validates the minimum req's to use the SDK/API.
+    /// - Caches API results to Session to reference again later.
+    /// - Performs before:after common tasks after API calls. 
+    /// - Handles any nuances of the SDK, exposing only what we need.
+    /// - Wraps async calls in try/catch so we may gracefully update UI on errs.
+    /// - Spawns BEFORE the player, or even connected to the network.
+    /// - To add API scripts: Add to the `ClientApis` base serialized field.
     /// </summary>
     public abstract class HathoraClientMgrBase : MonoBehaviour
     {
@@ -187,11 +194,13 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
         /// <param name="_region"></param>
         /// <param name="_visibility"></param>
         /// <param name="_initConfigJsonStr"></param>
+        /// <param name="roomId">Leaving empty creates a randomly-generated short Id (recommended)</param>
         /// <param name="_cancelToken"></param>
         public async Task<Lobby> CreateLobbyAsync(
             Region _region,
             CreateLobbyRequest.VisibilityEnum _visibility = CreateLobbyRequest.VisibilityEnum.Public,
             string _initConfigJsonStr = "{}",
+            string roomId = null,
             CancellationToken _cancelToken = default)
         {
             Lobby lobby;
@@ -202,6 +211,7 @@ namespace TPSBR.Hathora.Demos.Shared.Scripts.Client.ClientMgr
                     _visibility,
                     _region,
                     _initConfigJsonStr,
+                    roomId,
                     _cancelToken);
             }
             catch (Exception e)

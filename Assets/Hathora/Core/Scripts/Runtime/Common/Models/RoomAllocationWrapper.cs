@@ -9,6 +9,8 @@ using UnityEngine;
 namespace Hathora.Core.Scripts.Runtime.Common.Models
 {
     /// <summary>
+    /// Hathora SDK model wrapper to add [Serializable] support.
+    /// 
     /// This is a wrapper for Hathora SDK's `Room` model.
     /// We'll eventually replace this with a [Serializable] revamp of the model.
     /// </summary>

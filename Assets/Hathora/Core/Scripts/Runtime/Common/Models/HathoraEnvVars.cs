@@ -3,8 +3,11 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Hathora.Core.Scripts.Runtime.Common.Utils
+namespace Hathora.Core.Scripts.Runtime.Common.Models
 {
+    /// <summary>
+    /// Used with HathoraServerDeployApi + HathoraDeployOpts.
+    /// </summary>
     [Serializable]
     public struct HathoraEnvVars
     {

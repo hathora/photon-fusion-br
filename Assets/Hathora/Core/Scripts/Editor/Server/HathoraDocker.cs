@@ -11,6 +11,9 @@ using Debug = UnityEngine.Debug;
 
 namespace Hathora.Core.Scripts.Editor.Server
 {
+    /// <summary>
+    /// Dockerfile generation/reading utils.
+    /// </summary>
     public static class HathoraDocker
     {
         /// <summary>

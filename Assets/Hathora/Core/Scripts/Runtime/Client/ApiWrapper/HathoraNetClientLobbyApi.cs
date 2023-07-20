@@ -12,9 +12,14 @@ using UnityEngine;
 namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
 {
     /// <summary>
-    /// * Call Init() to pass UserConfig/instances.
-    /// * Does not handle UI.
-    /// * Does not handle Session caching.
+    /// High-level API wrapper for the low-level Hathora SDK's Lobby API.
+    /// * Caches SDK Config and HathoraClientConfig for API use. 
+    /// * Try/catches async API calls and [Base] automatically handlles API Exceptions.
+    /// * Due to code autogen, the SDK exposes too much: This simplifies and minimally exposes.
+    /// * Due to code autogen, the SDK sometimes have nuances: This provides fixes/workarounds.
+    /// * Call Init() to pass HathoraClientConfig + Hathora SDK Config (see HathoraClientMgr).
+    /// * Does not handle UI (see HathoraClientMgrUi).
+    /// * Does not handle Session caching (see HathoraClientSession).
     /// </summary>
     public class HathoraNetClientLobbyApi : HathoraNetClientApiBase
     {
@@ -44,6 +49,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
         /// <param name="_playerAuthToken">Player Auth Token (likely from a cached session)</param>
         /// <param name="lobbyVisibility"></param>
         /// <param name="_initConfigJsonStr"></param>
+        /// <param name="roomId">Null will auto-generate</param>
         /// <param name="_cancelToken"></param>
         /// <param name="_region">(!) Index starts at 1 (not 0)</param>
         /// <returns>Lobby on success</returns>
@@ -52,6 +58,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
             CreateLobbyRequest.VisibilityEnum lobbyVisibility,
             Region _region = Region.WashingtonDC,
             string _initConfigJsonStr = "{}",
+            string roomId = null,
             CancellationToken _cancelToken = default)
         {
             CreateLobbyRequest request = new(
@@ -69,7 +76,8 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
                     HathoraClientConfig.AppId,
                     _playerAuthToken, // Player token; not dev
                     request,
-                    cancellationToken: _cancelToken);
+                    roomId,
+                    _cancelToken);
             }
             catch (ApiException apiException)
             {

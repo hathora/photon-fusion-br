@@ -8,6 +8,7 @@ namespace Hathora.Core.Scripts.Runtime.Common.Models
 {
     /// <summary>
     /// Generally, most (if not all) SDK models include AppId.
+    /// More to certainly be added later.
     /// </summary>
     [Serializable]
     public class SdkWrapperBase : MonoBehaviour

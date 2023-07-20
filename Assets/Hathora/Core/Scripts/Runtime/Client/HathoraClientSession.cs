@@ -7,9 +7,9 @@ using UnityEngine;
 namespace Hathora.Core.Scripts.Runtime.Client
 {
     /// <summary>
-    /// Cached net session. Eg: Auth token, last room joined.
-    /// API wrappers will cache here on success.
-    /// TODO: Move HathoraClientSession to Demo. This would require detaching cache saving from API wrappers.
+    /// Cached Client net session. Eg: Auth token, last room joined.
+    /// API wrappers will cache here on success from the HathoraClientMgr.
+    /// New authentications will wipe these settings via InitNewSession().
     /// </summary>
     public class HathoraClientSession : MonoBehaviour
     {

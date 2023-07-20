@@ -5,7 +5,7 @@ using Hathora.Cloud.Sdk.Client;
 namespace Hathora.Core.Scripts.Runtime.Common.Models
 {
     /// <summary>
-    /// For HathoraServerApiBase || HathoraClientApiBase
+    /// Common reqs for HathoraServerApiBase || HathoraClientApiBase
     /// </summary>
     public interface IHathoraApiBase
     {

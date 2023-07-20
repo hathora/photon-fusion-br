@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Hathora.Core.Scripts.Runtime.Common.Utils
 {
+    /// <summary>
+    /// Utils to workaround old Unity code that may use Coroutines instead of async/await.
+    /// </summary>
     public abstract class HathoraTaskUtils
     {
         /// <summary>

@@ -8,8 +8,15 @@ using UnityEngine;
 namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
 {
     /// <summary>
-    /// This allows the API to view UserConfig (eg: AppId), set session and auth tokens.
-    /// Both Client and Server APIs can inherit from this.
+    /// High-level base API wrapper for the low-level Hathora SDK APIs.
+    /// - Only Client API wrappers may inherit from this.
+    /// * Caches SDK Config and HathoraClientConfig for API use. 
+    /// * Try/catches async API calls and [Base] automatically handlles API Exceptions.
+    /// * Due to code autogen, the SDK exposes too much: This simplifies and minimally exposes.
+    /// * Due to code autogen, the SDK sometimes have nuances: This provides fixes/workarounds.
+    /// * Call Init() to pass HathoraClientConfig + Hathora SDK Config (see HathoraClientMgr).
+    /// * Does not handle UI (see HathoraClientMgrUi).
+    /// * Does not handle Session caching (see HathoraClientSession).
     /// </summary>
     public abstract class HathoraNetClientApiBase : MonoBehaviour, IHathoraApiBase
     {

@@ -2,6 +2,9 @@
 
 namespace Hathora.Core.Scripts.Runtime.Client.Models
 {
+    /// <summary>
+    /// For use with the HathoraNetClientAuthApi.
+    /// </summary>
     public class AuthResult
     {
         public readonly string PlayerAuthToken;

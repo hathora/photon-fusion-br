@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 
 namespace Hathora.Core.Scripts.Runtime.Common.Extensions
 {
+    /// <summary>Extension methods for Process (terminal cmds).</summary>
     public static class ProcessExtensions
     {
         /// <summary>
-        /// Later versions of .NET have this; but Unity doesn't.
+        /// Later versions of .NET have the Async ver of WaitForExit, but Unity doesn't.
         /// </summary>
         /// <param name="process"></param>
         /// <param name="cancellationToken"></param>

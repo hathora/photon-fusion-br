@@ -8,7 +8,9 @@ using UnityEngine;
 namespace Hathora.Core.Scripts.Runtime.Common.Models
 {
     /// <summary>
-    /// Set transpport configurations for where the server will listen.
+    /// Hathora SDK model wrapper to add [Serializable] support.
+    /// 
+    /// Set transport configurations for where the server will listen.
     /// --- 
     /// This is a wrapper for Hathora SDK's `ExposedPort` model.
     /// We'll eventually replace this with a [Serializable] revamp of the model.

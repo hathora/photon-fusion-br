@@ -9,7 +9,9 @@ using UnityEngine.Assertions;
 namespace Hathora.Core.Scripts.Runtime.Common.Models
 {
     /// <summary>
-    /// Set transpport configurations for where the server will listen.
+    /// Hathora SDK model wrapper to add [Serializable] support.
+    /// 
+    /// Set transport configurations for where the server will listen.
     /// Unlike ContainerPortWrapper, here, you can customize the nickname (instead of "default").
     /// Leave the nickname null and we'll ignore this class.
     /// ---

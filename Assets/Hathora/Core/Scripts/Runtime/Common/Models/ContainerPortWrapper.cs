@@ -8,6 +8,8 @@ using UnityEngine;
 namespace Hathora.Core.Scripts.Runtime.Common.Models
 {
     /// <summary>
+    /// Hathora SDK model wrapper to add [Serializable] support.
+    /// 
     /// Set transpport configurations for where the server will listen.
     /// --- 
     /// This is a wrapper for Hathora SDK's `ContainerPort` model.
