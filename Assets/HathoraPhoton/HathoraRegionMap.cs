@@ -2,10 +2,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using static Hathora.Core.Scripts.Runtime.Common.Extensions.StringExtensions;
+using Hathora.Core.Scripts.Runtime.Common.Extensions;
 using HathoraRegion = Hathora.Cloud.Sdk.Model.Region;
 
-namespace TPSBR.Hathora.PhotonFusion.Common
+namespace HathoraPhoton
 {
     /// <summary>
     /// To prevent confusion, maps do not override Photon's region whitelist.

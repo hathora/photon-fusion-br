@@ -1,20 +1,18 @@
 // Created by dylan@hathora.dev
 
-using System.Net;
 using System.Threading.Tasks;
 using Fusion;
 using Fusion.Photon.Realtime;
 using Hathora.Cloud.Sdk.Model;
-using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Newtonsoft.Json;
 using TMPro;
-using TPSBR.Hathora.PhotonFusion.Common;
+using TPSBR;
 using UnityEngine;
 using HathoraRegion = Hathora.Cloud.Sdk.Model.Region;
 using Assert = UnityEngine.Assertions.Assert;
 using Debug = UnityEngine.Debug;
 
-namespace TPSBR.HathoraPhoton
+namespace HathoraPhoton
 {
     /// <summary>Early logic originally ported over from Photon's Networking.cs</summary>
     public class HathoraMatchmaking : Matchmaking
@@ -23,26 +21,26 @@ namespace TPSBR.HathoraPhoton
         [Header("Pre-Create")]
         [SerializeField]
         private TextMeshProUGUI hathoraCreateStatusTxt;
-        
+    
         [Header("Post-Create")]
         [SerializeField]
         private TextMeshProUGUI hathoraCreateDoneStatusTxt;
         [SerializeField]
         private GameObject createSettingsModalPnl;
         #endregion // Serialized
-        
-        
+    
+    
         private static HathoraRegion HATHORA_FALLBACK_REGION => HathoraRegion.WashingtonDC;
         private static HathoraPhotonClientMgr clientMgr => HathoraPhotonClientMgr.Singleton;
 
-        
+    
         #region Base
         protected override void OnAwake()
         {
             base.OnAwake();
             Debug.Log("[HathoraMatchmaking] OnAwake");
         }
-        
+    
         /// <summary>Host only</summary>
         /// <param name="request"></param>
         public override async void CreateSession(SessionRequest request)
@@ -67,7 +65,7 @@ namespace TPSBR.HathoraPhoton
             }
         }
         #endregion // Base
-        
+    
 
         /// <summary>High-level, async Task wrapper for CreateSession</summary>
         /// <param name="_request"></param>
@@ -75,14 +73,14 @@ namespace TPSBR.HathoraPhoton
         {
             string logPrefix = $"[HathoraMatchmaking.{nameof(createHathoraSessionAsync)}]";
             Debug.Log($"{logPrefix} (as Photon 'Host')");
-            
+        
             // 1. Ensure authed; already via HathoraPhotonClientMgr.Awake()
             if (!clientMgr.HathoraClientSession.IsAuthed)
             {
                 Debug.Log($"{logPrefix} !IsAuthed");
                 return;
             }
-            
+        
             // 2. Create Lobby (a Room with server browsing capabilities)
             Lobby lobby = await photonHostCreateHathoraLobbyAsync(_request);
             Assert.IsNotNull(lobby?.RoomId, $"{logPrefix} Expected Lobby?.RoomId");
@@ -97,9 +95,9 @@ namespace TPSBR.HathoraPhoton
         private void onCreateLobbySuccessUI(Lobby _lobby)
         {
             Debug.Log($"[HathoraMatchmaking] onCreateLobbySuccessUI");
-            
+        
             hathoraCreateDoneStatusTxt.text = $"Created Lobby: {_lobby.RoomId}";
-            hathoraCreateDoneStatusTxt.SetActive(true);
+            hathoraCreateDoneStatusTxt.gameObject.SetActive(true);
             createSettingsModalPnl.SetActive(false);
         }
 
@@ -115,11 +113,11 @@ namespace TPSBR.HathoraPhoton
         {
             _request.UserID      = Context.PlayerData.UserID;
             _request.CustomLobby = GetLobbyName();
-            
+        
             // Get the selected Photon Region -> Map to closest Hathora Region
             Region hathoraRegion = getHathoraRegionFromPhoton();
             // string initConfigJsonStr = JsonConvert.SerializeObject(someStatefulConfig); // TODO
-            
+        
             string initConfigJsonStr = JsonConvert.SerializeObject(_request);
 
             Lobby lobby = await clientMgr.CreateLobbyAsync(
@@ -132,7 +130,7 @@ namespace TPSBR.HathoraPhoton
 
             return lobby;
         }
-        
+    
         private static Region getHathoraRegionFromPhoton()
         {
             string photonRegionStr = PhotonAppSettings.Instance.AppSettings.FixedRegion;

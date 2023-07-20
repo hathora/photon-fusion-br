@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
-using TPSBR.HathoraPhoton;
+using HathoraPhoton;
 using TPSBR.UI;
 using UnityEngine.Serialization;
 

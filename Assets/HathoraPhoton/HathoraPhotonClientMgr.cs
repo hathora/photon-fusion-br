@@ -3,7 +3,7 @@ using Hathora.Core.Scripts.Runtime.Client.Models;
 using Hathora.Demos.Shared.Scripts.Client.ClientMgr;
 using UnityEngine;
 
-namespace TPSBR.HathoraPhoton
+namespace HathoraPhoton
 {
     public class HathoraPhotonClientMgr : HathoraClientMgrBase
     {
