@@ -45,17 +45,17 @@ namespace HathoraPhoton
         }
     
         /// <summary>Host only</summary>
-        /// <param name="request"></param>
-        public override async void CreateSession(SessionRequest request)
+        /// <param name="_request"></param>
+        public override async void CreateSession(SessionRequest _request)
         {
-            if (request.GameMode != GameMode.Host)
+            if (_request.GameMode != GameMode.Host)
             {
                 // Continue as normal ->
-                base.CreateSession(request);
+                base.CreateSession(_request);
                 return;
             }
 
-            if (request.GameMode == GameMode.Host)
+            if (_request.GameMode == GameMode.Host)
             {
                 // ##############################################################
                 // "Host" Acting as a Hathora Client:
@@ -67,7 +67,7 @@ namespace HathoraPhoton
                 //
                 // You should now be able to see the lobby within the list
                 // ##############################################################
-                await createHathoraSessionAsync(request);
+                await createHathoraSessionAsync(_request);
             }
         }
         #endregion // Base Overrides
