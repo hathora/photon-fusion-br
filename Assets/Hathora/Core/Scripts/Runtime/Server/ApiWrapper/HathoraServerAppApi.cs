@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
 {
-    public class HathoraServerAppApi : HathoraServerApiBase
+    public class HathoraServerAppApi : HathoraServerApiWrapperBase
     {
         private readonly AppV1Api appApi;
 
@@ -47,7 +47,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiErr)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerAppApi),
                     nameof(GetAppsAsync), 
                     apiErr);

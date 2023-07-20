@@ -87,10 +87,10 @@ namespace TPSBR.UI
 		{
 			base.OnOpen();
 
-			Context.Matchmaking.SessionListUpdated += OnSessionListUpdated;
-			Context.Matchmaking.LobbyJoined += OnLobbyJoined;
-			Context.Matchmaking.LobbyJoinFailed += OnLobbyJoinFailed;
-			Context.Matchmaking.LobbyLeft += OnLobbyLeft;
+			Context.HathoraMatchmaking.SessionListUpdated += OnSessionListUpdated;
+			Context.HathoraMatchmaking.LobbyJoined += OnLobbyJoined;
+			Context.HathoraMatchmaking.LobbyJoinFailed += OnLobbyJoinFailed;
+			Context.HathoraMatchmaking.LobbyLeft += OnLobbyLeft;
 
 			Context.Matchmaker.MatchFound += OnMatchFound;
 			Context.Matchmaker.MatchmakerFailed += OnMatchmakerFailed;
@@ -106,15 +106,15 @@ namespace TPSBR.UI
 
 		protected override void OnClose()
 		{
-			Context.Matchmaking.SessionListUpdated -= OnSessionListUpdated;
-			Context.Matchmaking.LobbyJoined -= OnLobbyJoined;
-			Context.Matchmaking.LobbyJoinFailed -= OnLobbyJoinFailed;
-			Context.Matchmaking.LobbyLeft -= OnLobbyLeft;
+			Context.HathoraMatchmaking.SessionListUpdated -= OnSessionListUpdated;
+			Context.HathoraMatchmaking.LobbyJoined -= OnLobbyJoined;
+			Context.HathoraMatchmaking.LobbyJoinFailed -= OnLobbyJoinFailed;
+			Context.HathoraMatchmaking.LobbyLeft -= OnLobbyLeft;
 
 			Context.Matchmaker.MatchFound -= OnMatchFound;
 			Context.Matchmaker.MatchmakerFailed -= OnMatchmakerFailed;
 
-			Context.Matchmaking.LeaveLobby();
+			Context.HathoraMatchmaking.LeaveLobby();
 
 			base.OnClose();
 		}
@@ -123,7 +123,7 @@ namespace TPSBR.UI
 		{
 			base.OnTick();
 
-			_refreshingGroup.SetActive(Context.Matchmaking.IsJoiningToLobby);
+			_refreshingGroup.SetActive(Context.HathoraMatchmaking.IsJoiningToLobby);
 
 			bool canJoin = CanJoinSession(_selectedSession);
 			_joinButton.interactable = canJoin;
@@ -136,7 +136,7 @@ namespace TPSBR.UI
 		{
 			if (PhotonAppSettings.Instance.AppSettings.AppIdFusion.HasValue() == true)
 			{
-				Context.Matchmaking.JoinLobby(force);
+				Context.HathoraMatchmaking.JoinLobby(force);
 			}
 			else
 			{
@@ -253,7 +253,7 @@ namespace TPSBR.UI
 
 		private void OnMatchFound(MultiplayAssignment assignment)
 		{
-			Context.Matchmaking.JoinSession("mm-" + assignment.MatchId);
+			Context.HathoraMatchmaking.JoinSession("mm-" + assignment.MatchId);
 			if (_matchmakerView != null)
 			{
 				_matchmakerView.Close();
@@ -284,7 +284,7 @@ namespace TPSBR.UI
 
 		private void OnJoinButton()
 		{
-			Context.Matchmaking.JoinSession(_selectedSession);
+			Context.HathoraMatchmaking.JoinSession(_selectedSession);
 		}
 
 		private void OnSettingsButton()

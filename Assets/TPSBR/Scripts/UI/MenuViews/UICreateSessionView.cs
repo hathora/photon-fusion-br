@@ -65,7 +65,7 @@ namespace TPSBR.UI
 				UpdateDropdowns();
 
 				_maps.Refresh(_mapSetups.Count);
-				_maps.Selection = 0;
+				_maps.Selection = 0; // Smallest "GenArea2" map --Hathora
 
 				OnMapSelectionChanged(0);
 
@@ -100,8 +100,8 @@ namespace TPSBR.UI
 				MaxPlayers   = System.Int32.Parse(_maxPlayers.text),
 				ScenePath    = _mapSetups[_maps.Selection].ScenePath,
 			};
-;
-			Context.Matchmaking.CreateSession(request);
+
+			Context.HathoraMatchmaking.CreateSession(request);
 		}
 
 		private bool CanCreateGame()

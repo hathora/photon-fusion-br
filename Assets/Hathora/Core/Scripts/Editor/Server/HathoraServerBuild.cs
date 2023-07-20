@@ -1,6 +1,7 @@
 // Created by dylan@hathora.dev
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,14 @@ using Debug = UnityEngine.Debug;
 namespace Hathora.Core.Scripts.Editor.Server
 {
     /// <summary>
+    /// High-level server build logic, bundling several steps around
+    /// the Hathora Build API.
+    /// 
     /// Contains build + deploy methods for Hathora Server.
-    /// Trigger these from HathoraServerConfig ScriptableObject buttons. 
+    /// Trigger these from HathoraServerConfig ScriptableObject buttons.
+    ///
+    /// (!) bug: Scenes to build includes ALL scenes in the build settings, even if unchecked.
+    ///          There's currently no [native] way to get only the checked scenes.
     /// </summary>
     public static class HathoraServerBuild
     {
@@ -124,7 +131,7 @@ namespace Hathora.Core.Scripts.Editor.Server
             // ----------------
             // Open the build directory - this will lose focus of the inspector
             // TODO: Play a small, subtle chime sfx?
-            strb.AppendLine("Opening build dir ...");
+            strb.AppendLine("Opening build dir ...").AppendLine();
             Debug.Log("[HathoraServerBuild.BuildHathoraLinuxServer] " +
                 $"Build succeeded @ path: `{configPaths.PathToBuildDir}`");
             
@@ -136,9 +143,16 @@ namespace Hathora.Core.Scripts.Editor.Server
             return buildReport;
         }
 
+        /// <summary>
+        /// (!) bug: Scenes to build includes ALL scenes in the build settings, even if unchecked.
+        ///          There's currently no [native] way to get only the checked scenes.
+        /// </summary>
+        /// <param name="_buildOpts"></param>
+        /// <returns></returns>
         private static string getBuildOptsStr(BuildPlayerOptions _buildOpts)
         {
-            return $"scenes: `{string.Join("`, `", _buildOpts.scenes)}`\n\n" +
+            string scenesToBuildStr = string.Join("`, `", _buildOpts.scenes); 
+            return $"scenes: `{scenesToBuildStr}`\n\n" +
                 $"locationPathName: `{_buildOpts.locationPathName}`\n" +
                 $"target: `{_buildOpts.target}`\n" +
                 $"options: `{_buildOpts.options}`\n" +

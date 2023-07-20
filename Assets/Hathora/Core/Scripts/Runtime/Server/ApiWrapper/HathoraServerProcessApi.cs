@@ -13,9 +13,9 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
     /// Operations to get data on active and stopped processes.
     /// API Docs | https://hathora.dev/api#tag/ProcessesV1 
     /// </summary>
-    public class HathoraServerProcessApi : HathoraServerApiBase
+    public class HathoraServerProcessApi : HathoraServerApiWrapperBase
     {
-        private readonly ProcessesV1Api processesApi;
+        private ProcessesV1Api processesApi;
 
         /// <summary>
         /// </summary>
@@ -60,7 +60,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (ApiException apiErr)
             {
-                HandleServerApiException(
+                HandleApiException(
                     nameof(HathoraServerProcessApi),
                     nameof(GetProcessInfoAsync), 
                     apiErr);
@@ -73,5 +73,15 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             return getProcessInfoResult;
         }
         #endregion // Server Process Async Hathora SDK Calls
+
+
+        public override void Init(
+            HathoraServerConfig _hathoraServerConfig, 
+            Configuration _hathoraSdkConfig = null)
+        {
+            Debug.Log("[HathoraServerProcessApi] Initializing API...");
+            base.Init(_hathoraServerConfig, _hathoraSdkConfig);
+            this.processesApi = new ProcessesV1Api(base.HathoraSdkConfig);
+        }
     }
 }

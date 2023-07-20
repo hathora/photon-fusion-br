@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using Hathora.Cloud.Sdk.Model;
 using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Hathora.Core.Scripts.Runtime.Common.Models
 {
     /// <summary>
+    /// Hathora SDK model wrapper to add [Serializable] support.
+    /// 
     /// This is a wrapper for Hathora SDK's `ConnectionInfoV2` model.
     /// We'll eventually replace this with a [Serializable] revamp of the model.
     /// </summary>

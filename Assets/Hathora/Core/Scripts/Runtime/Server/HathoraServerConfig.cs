@@ -8,8 +8,12 @@ using UnityEngine;
 namespace Hathora.Core.Scripts.Runtime.Server
 {
     /// <summary>
-    /// Sensitive info will not be included in Client builds.
-    /// For meta objects (like the banner and btns), see `HathoraConfigUI`.
+    /// The primary config file for Hathora Server, including AppId and dev auth token.
+    /// - See top menu `Hathora/ConfigFInder` to create or find a config, or create a new one in Project right-click menu.
+    /// - The default ".template" file is included, but with a warning to duplicate and .gitignore it.
+    /// - There can be multiple configs; the recommended use is 1-per-stage. Eg: "dev", "staging", "prod".
+    /// - Sensitive info will not be included in Client builds.
+    /// - For meta objects (like the banner and btns), see `HathoraConfigUI`.
     /// </summary>
     [CreateAssetMenu(fileName = nameof(HathoraServerConfig), menuName = "Hathora/ServerConfig File")]
     public class HathoraServerConfig : ScriptableObject

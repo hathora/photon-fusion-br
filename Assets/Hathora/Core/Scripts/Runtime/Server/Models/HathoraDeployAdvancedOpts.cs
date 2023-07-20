@@ -35,7 +35,6 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         /// Leave the nickname empty and we'll ignore this.
         /// Ensure the port differs from the others.
         /// </summary>
-        [FormerlySerializedAs("_extraTransportInfo1")]
         [SerializeField] 
         private AdditionalContainerPortWrapper additionalTransportInfo1 = new();
         
@@ -55,7 +54,6 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         /// Leave the nickname empty and we'll ignore this.
         /// Ensure the port differs from the others.
         /// </summary>
-        [FormerlySerializedAs("_extraTransportInfo2")]
         [SerializeField] 
         private AdditionalContainerPortWrapper additionalTransportInfo2 = new();
         

@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
+using HathoraPhoton;
 using TPSBR.UI;
+using UnityEngine.Serialization;
 
 namespace TPSBR
 {
@@ -62,7 +64,10 @@ namespace TPSBR
 		// Menu
 
 		public PlayerPreview    PlayerPreview;
-		public Matchmaking      Matchmaking;
+		
+		[FormerlySerializedAs("Matchmaking")]
+		public HathoraMatchmaking      HathoraMatchmaking;
+		
 		public Matchmaker       Matchmaker;
 	}
 

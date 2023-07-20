@@ -16,6 +16,7 @@ RUN apt-get update && \
 RUN chmod +x ./Hathora-Unity-LinuxServer.x86_64
 
 # Run the Linux server in headless mode as a dedicated server
+# The Photon args will be the fallback Server session if unset @ Networking.cs
 CMD ./Hathora-Unity-LinuxServer.x86_64 \
     -batchmode \
     -nographics \

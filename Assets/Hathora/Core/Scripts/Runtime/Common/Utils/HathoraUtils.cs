@@ -2,7 +2,10 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using Application = UnityEngine.Application;
@@ -105,6 +108,15 @@ namespace Hathora.Core.Scripts.Runtime.Common.Utils
         {
             var json = JsonConvert.SerializeObject(obj);
             return JsonConvert.DeserializeObject<T>(json);
+        }
+
+        /// <summary>This can return more than 1 IP, but we just return the 1st</summary>
+        /// <param name="_host"></param>
+        /// <returns></returns>
+        public static async Task<IPAddress> ConvertHostToIpAddress(string _host)
+        {
+            IPAddress[] ips = await Dns.GetHostAddressesAsync(_host);
+            return ips.FirstOrDefault();
         }
     }
 }

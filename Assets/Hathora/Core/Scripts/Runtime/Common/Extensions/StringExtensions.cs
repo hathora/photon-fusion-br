@@ -1,14 +1,14 @@
 // dylan@hathora.dev
 
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace Hathora.Core.Scripts.Runtime.Common.Extensions
 {
+    /// <summary>Extension methods for string.</summary>
     public static class StringExtensions
     {
         /// <summary>
-        /// Eg: "fooBar" -> "Foo Bar".
+        /// Splits a string to PascalCase. Eg: "fooBar" -> "Foo Bar".
         /// * For 2+ CAPS in a row, like "WashingtonDC", it will be "Washington DC".
         /// --------
         /// * Inserts a space before each uppercase letter that is either:

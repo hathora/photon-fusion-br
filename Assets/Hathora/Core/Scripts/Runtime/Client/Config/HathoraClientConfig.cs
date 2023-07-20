@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Hathora.Core.Scripts.Runtime.Client.Config
 {
-    /// <summary>Hathora Client Config ScriptableObject.</summary>
+    /// <summary>Hathora Client Config ScriptableObject, containing AppId.</summary>
     [CreateAssetMenu(fileName = nameof(HathoraClientConfig), menuName = "Hathora/Client Config File")]
     public class HathoraClientConfig : ScriptableObject
     {

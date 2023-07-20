@@ -12,6 +12,10 @@ namespace TPSBR
 {
 	public class Matchmaking : SceneService, INetworkRunnerCallbacks
 	{
+		// HATHORA
+		private void Awake() => OnAwake();
+		protected virtual void OnAwake() { }
+
 		// PUBLIC MEMBERS
 
 		public bool IsJoiningToLobby;
@@ -44,11 +48,18 @@ namespace TPSBR
 		private NetworkRunner _lobbyRunner;
 
 		private string _lobbyName;
+		protected string GetLobbyName() => _lobbyName; // --Hathora
+		
 		private string _currentRegion;
+		protected string GetCurrentRegion() => _currentRegion;
 
 		// PUBLIC METHODS
 
-		public void CreateSession(SessionRequest request)
+		/// <summary>
+		/// Added virtual --Hathora
+		/// </summary>
+		/// <param name="request"></param>
+		public virtual void CreateSession(SessionRequest request)
 		{
 			if (request.GameMode != GameMode.Server && request.GameMode != GameMode.Host)
 				return;
