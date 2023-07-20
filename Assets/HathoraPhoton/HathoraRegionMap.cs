@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hathora.Core.Scripts.Runtime.Common.Extensions;
+using TPSBR;
+using UnityEngine;
 using HathoraRegion = Hathora.Cloud.Sdk.Model.Region;
 
 namespace HathoraPhoton
@@ -13,6 +15,8 @@ namespace HathoraPhoton
     /// </summary>
     public class HathoraRegionMap
     {
+        private const HathoraRegion fallbackHathoraRegion = HathoraRegion.WashingtonDC;
+        
         #region Region Map Info
         // ###################################
         // HATHORA REGIONS:
@@ -38,8 +42,20 @@ namespace HathoraPhoton
         // ###################################
         #endregion // Region Map Info
     
-        public static int GetHathoraRegionFromPhoton(string _photonRegion) => 
+        public static int GetHathoraRegionIndexFromPhoton(string _photonRegion) => 
             GetPhotonToHathoraRegionMap()[_photonRegion];
+
+        public static HathoraRegion GetHathoraRegionEnumFromPhoton(string _photonRegion)
+        {
+            if (string.IsNullOrEmpty(_photonRegion))
+            {
+                Debug.Log("[HathoraRegionMap] GetHathoraRegionEnumFromPhoton: !_photonRegion; " +
+                    $"returning fallback region: {fallbackHathoraRegion}");
+                return fallbackHathoraRegion;
+            }
+            
+            return (HathoraRegion)GetPhotonToHathoraRegionMap()[_photonRegion];
+        }
         
         /// <summary>
         /// Photon uses implicit strings; Hathora uses 1-based enum.
@@ -47,13 +63,13 @@ namespace HathoraPhoton
         /// </summary>
         public static Dictionary<string, int> GetPhotonToHathoraRegionMap() => new()
         {
+            { "us", (int)HathoraRegion.WashingtonDC }, // WashingtonDC, (2) USA // Fallback
+            { "usw", (int)HathoraRegion.Seattle }, // San Jose, CA, USA : (1) Seattle, WA, USA
             { "asia", (int)HathoraRegion.Singapore }, // (7) Singapore
             { "jp", (int)HathoraRegion.Tokyo }, // (8) Tokyo, Japan
             { "eu", (int)HathoraRegion.Frankfurt }, // Amsterdam, Netherlands : (5) Frankfurt, Germany
             { "sa", (int)HathoraRegion.SaoPaulo }, // (10) SaoPaulo, Brazil
             { "kr", (int)HathoraRegion.Singapore }, // Seoul, South Korea : (7) Singapore
-            { "us", (int)HathoraRegion.WashingtonDC }, // WashingtonDC, (2) USA
-            { "usw", (int)HathoraRegion.Seattle }, // San Jose, CA, USA : (1) Seattle, WA, USA
         };
 
         /// <summary>

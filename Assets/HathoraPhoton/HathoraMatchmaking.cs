@@ -1,9 +1,11 @@
 // Created by dylan@hathora.dev
 
+using System;
 using System.Threading.Tasks;
 using Fusion;
 using Fusion.Photon.Realtime;
 using Hathora.Cloud.Sdk.Model;
+using Hathora.Core.Scripts.Runtime.Common.Extensions;
 using Newtonsoft.Json;
 using TMPro;
 using TPSBR;
@@ -117,8 +119,9 @@ namespace HathoraPhoton
         private void onCreateLobbySuccessUI(Lobby _lobby)
         {
             Debug.Log($"[HathoraMatchmaking] onCreateLobbySuccessUI");
-        
-            hathoraCreateDoneStatusTxt.text = $"Created Lobby: {_lobby.RoomId}";
+
+            string friendlyHathoraRegion = _lobby.Region.ToString().SplitPascalCase();
+            hathoraCreateDoneStatusTxt.text = $"Created Lobby: {_lobby.RoomId} ({friendlyHathoraRegion})";
             hathoraCreateDoneStatusTxt.gameObject.SetActive(true);
             createSettingsModalPnl.SetActive(false);
             
@@ -139,32 +142,33 @@ namespace HathoraPhoton
             _request.CustomLobby = GetLobbyName();
         
             // Get the selected Photon Region -> Map to closest Hathora Region
-            Region hathoraRegion = getHathoraRegionFromPhoton();
-            // string initConfigJsonStr = JsonConvert.SerializeObject(someStatefulConfig); // TODO
-        
+            // "Any" region falls back to WashingtonDC
+            string photonRegionStr =  base.GetCurrentRegion(); // From top-left dropdown in `Menu` scene
+            HathoraRegion hathoraRegion = HathoraRegionMap.GetHathoraRegionEnumFromPhoton(
+                photonRegionStr); // alt: getHathoraRegionFromPhoton()
+            
             string initConfigJsonStr = JsonConvert.SerializeObject(_request);
 
             Lobby lobby = await clientMgr.CreateLobbyAsync(
                 hathoraRegion,
                 CreateLobbyRequest.VisibilityEnum.Public,
                 initConfigJsonStr);
-
+            
             Assert.IsNotNull(lobby?.RoomId, "!lobby.RoomId");
-
 
             return lobby;
         }
     
-        private static Region getHathoraRegionFromPhoton()
-        {
-            string photonRegionStr = PhotonAppSettings.Instance.AppSettings.FixedRegion;
-            bool hasPhotonRegionStr = !string.IsNullOrEmpty(photonRegionStr);
-
-            Region hathoraRegion = hasPhotonRegionStr
-                ? (Region)HathoraRegionMap.GetHathoraRegionFromPhoton(photonRegionStr)
-                : HATHORA_FALLBACK_REGION;
-
-            return hathoraRegion;
-        }
+        // private static Region getHathoraRegionFromPhoton()
+        // {
+        //     string photonRegionStr = PhotonAppSettings.Instance.AppSettings.FixedRegion;
+        //     bool hasPhotonRegionStr = !string.IsNullOrEmpty(photonRegionStr);
+        //
+        //     Region hathoraRegion = hasPhotonRegionStr
+        //         ? (Region)HathoraRegionMap.GetHathoraRegionFromPhoton(photonRegionStr)
+        //         : HATHORA_FALLBACK_REGION;
+        //
+        //     return hathoraRegion;
+        // }
     }
 }

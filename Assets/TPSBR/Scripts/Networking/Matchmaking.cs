@@ -51,6 +51,7 @@ namespace TPSBR
 		protected string GetLobbyName() => _lobbyName; // --Hathora
 		
 		private string _currentRegion;
+		protected string GetCurrentRegion() => _currentRegion;
 
 		// PUBLIC METHODS
 

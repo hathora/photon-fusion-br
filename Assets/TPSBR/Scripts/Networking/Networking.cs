@@ -58,7 +58,7 @@ namespace TPSBR
 		/// </summary>
 		private const string MOCK_HATHORA_PROCESS_ID = "eb4b7dc9-9c9e-4967-bf6e-d22f13b23455";
 
-        private HathoraRegion HATHORA_FALLBACK_REGION => Region.WashingtonDC;
+        public static HathoraRegion HATHORA_FALLBACK_REGION => Region.WashingtonDC;
 
         /// <summary>ByRef wrapper; passing just `ref` has issues with async/coroutines/tasks</summary>
         private class StartGameArgsContainer
@@ -722,7 +722,7 @@ namespace TPSBR
             bool hasPhotonRegionStr = !string.IsNullOrEmpty(photonRegionStr);
 
             HathoraRegion hathoraRegion = hasPhotonRegionStr
-                ? (HathoraRegion)HathoraRegionMap.GetHathoraRegionFromPhoton(photonRegionStr)
+                ? (HathoraRegion)HathoraRegionMap.GetHathoraRegionIndexFromPhoton(photonRegionStr)
                 : HATHORA_FALLBACK_REGION;
 
             return hathoraRegion;
