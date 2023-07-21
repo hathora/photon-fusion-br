@@ -1,6 +1,7 @@
 // Created by dylan@hathora.dev
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -11,6 +12,30 @@ namespace Hathora.Core.Scripts.Runtime.Common.Utils
     /// </summary>
     public abstract class HathoraTaskUtils
     {
+        /// <summary>
+        /// WaitUntil something, with timeout (to prevent infinite loops).
+        /// - Default 5s with 0.1s intervals.
+        /// - Example: `await TaskExtensions.WaitUntil(() => foo != null);`
+        /// </summary>
+        /// <param name="_condition"></param>
+        /// <param name="_intervalMs"></param>
+        /// <param name="_timeoutMs"></param>
+        /// <exception cref="TimeoutException"></exception>
+        public static async Task WaitUntil(
+            Func<bool> _condition,
+            int _intervalMs = 100,
+            int _timeoutMs = 5000)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            while (!_condition())
+            {
+                if (stopwatch.ElapsedMilliseconds > _timeoutMs)
+                    throw new TimeoutException();
+                
+                await Task.Delay(_intervalMs);
+            }
+        }
+        
         /// <summary>
         /// yield return this in a coroutine to wait for a Task to complete.
         /// </summary>
