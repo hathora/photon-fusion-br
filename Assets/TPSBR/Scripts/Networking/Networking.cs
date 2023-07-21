@@ -50,14 +50,6 @@ namespace TPSBR
 		private static HathoraServerConfig hathoraServerConfig => 
 			Global.Settings.HathoraServerConfig;
 
-		/// <summary>Useful for local testing or within the editor</summary>
-		private const bool USE_MOCK_HATHORA_PROCESS_ID = false;
-
-		/// <summary>
-		/// Create a Room (5m ttl) -> manually toss the processId here -> set USE_MOCK_HATHORA_PROCESS_ID
-		/// </summary>
-		private const string MOCK_HATHORA_PROCESS_ID = "eb4b7dc9-9c9e-4967-bf6e-d22f13b23455";
-
         public static HathoraRegion HATHORA_FALLBACK_REGION => Region.WashingtonDC;
 
         /// <summary>ByRef wrapper; passing just `ref` has issues with async/coroutines/tasks</summary>
@@ -786,49 +778,28 @@ namespace TPSBR
 		/// <returns></returns>
 		private async Task<(IPAddress ip, ushort port)> GetHathoraServerIpPortAsync()
 		{
-			// Mock it, or get the actual env var?
-			string HATHORA_PROCESS_ID = USE_MOCK_HATHORA_PROCESS_ID && !string.IsNullOrEmpty(MOCK_HATHORA_PROCESS_ID)
-				? MOCK_HATHORA_PROCESS_ID
-				: Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
-			
-			if (USE_MOCK_HATHORA_PROCESS_ID)
-				Log("[GetHathoraServerIpPortAsync] <color=yellow>(!) USE_MOCK_HATHORA_PROCESS_ID</color>");
-			
-			Log($"[ConnectPeerCoroutine.GetHathoraServerIpPortAsync] " +
-                $"HATHORA_PROCESS_ID: {HATHORA_PROCESS_ID}");
-			bool hasHathoraProcId = !string.IsNullOrEmpty(HATHORA_PROCESS_ID);
+			string logPrefix = $"[Networking.{nameof(GetHathoraServerIpPortAsync)}]";
+			(IPAddress ip, ushort port) ipPort = default;
 
-            (IPAddress ip, ushort port) processIpPort = default;
-
-            if (!hasHathoraProcId)
-                return processIpPort; // failed, but done
-            
-            // -----------------------------------------------------
-            // Get ip:port from Hathora ProcessId; OR local fallback
+			Process process = null;
 			try
 			{
-				processIpPort = await hathoraServerGetProcessAsync(HATHORA_PROCESS_ID);
+				process = await HathoraServerMgr.Singleton.GetCachedSystemHathoraProcess();
 			}
 			catch (Exception e)
 			{
-				Debug.LogError("[initServerSetPublicAddress] GetHathoraServerIpPortAsync " +
-                    $"=> Error: {e}");
-				throw;
+				Debug.LogError($"{logPrefix} GetCachedSystemHathoraProcess => Error: {e.Message}");
+				return ipPort;
 			}
-
-			// Done
-            processIpPort.ip = processIpPort.ip;
-            processIpPort.port = processIpPort.port;
 			
-			return processIpPort;
-		}
-
-		private void serverSetCustomPublicAddress(
-			string _host,
-			ushort _port,
-			StartGameArgsContainer _startGameArgsContainer)
-		{
+			Assert.IsNotNull(process?.ExposedPort?.Host, $"{logPrefix} Expected `process.ExposedPort.Host`");
+			Assert.IsTrue(process?.ExposedPort?.Port > 0, $"{logPrefix} Expected `process.ExposedPort.Port > 0`");
+				
+			// Get the IP address from the host name; this can return > 1, but we just want 1st
+			ipPort.ip = await HathoraUtils.ConvertHostToIpAddress(process.ExposedPort.Host);
+			ipPort.port = (ushort)process.ExposedPort.Port;
 			
+			return ipPort;
 		}
 
         /// <summary>Validates -> logs -> sets ip:port</summary>
@@ -868,55 +839,6 @@ namespace TPSBR
 			IPAddress ipAddress = IPAddress.Parse(LOCAL_SERVER_IP);
 
 			return (ipAddress, ipUint);
-		}
-
-		/// <summary>Validates -> Gets hathora Process async; converts host name to IP</summary>
-		/// <param name="_hathoraProcessId"></param>
-		/// <param name="_cancelToken"></param>
-		/// <returns>(IPAddress ip, ushort port) named Tuple</returns>
-		private async Task<(IPAddress ip, ushort port)> hathoraServerGetProcessAsync(
-			string _hathoraProcessId,
-			CancellationToken _cancelToken = default)
-		{
-			string logPrefix = $"[Networking.{nameof(hathoraServerGetProcessAsync)}]";
-
-			// Validate Hathora Server Config + Auth Token
-			if (hathoraServerConfig == null)
-				throw new NullReferenceException($"{logPrefix} !hathoraServerConfig: Serialize it @ GlobalSettings.cs");
-			
-			if (!hathoraServerConfig.HathoraCoreOpts.DevAuthOpts.HasAuthToken)
-			{
-				throw new NullReferenceException($"{logPrefix} !hathoraServerConfig.HathoraCoreOpts" +
-					".DevAuthOpts.HasAuthToken: Ensure you are authenticated to Hathora via HathoraServerConfig file " +
-					"(find via top menu: `Hathora/ServerConfigFinder`)");
-			}
-			
-			// Set ip:port via Hathora API's procId >>
-			HathoraServerProcessApi processApi = new(hathoraServerConfig);
-
-			// Normally this is an `await`, but we're inside a coroutine =>
-			Process process = null;
-			try
-			{
-				process = await processApi.GetProcessInfoAsync(
-					_hathoraProcessId,
-					_cancelToken: _cancelToken);
-			}
-			catch (Exception e)
-			{
-				Debug.LogError($"{logPrefix} GetProcessInfoAsync => Error: {e}");
-				throw;
-			}
-			
-			Assert.IsNotNull(process?.ExposedPort?.Host, $"{logPrefix} Expected `process.ExposedPort.Host`");
-			Assert.IsTrue(process?.ExposedPort?.Port > 0, $"{logPrefix} Expected `process.ExposedPort.Port > 0`");
-				
-			// Get the IP address from the host name; this can return > 1, but we just want 1st
-			(IPAddress ip, ushort port) ipPort;
-			ipPort.ip = await HathoraUtils.ConvertHostToIpAddress(process.ExposedPort.Host);
-			ipPort.port = (ushort)process.ExposedPort.Port;
-
-			return ipPort;
 		}
 		#endregion // Hathora Utils
 		
