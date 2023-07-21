@@ -358,7 +358,7 @@ namespace TPSBR
                         hathoraServerGetIpAsync(startGameArgsByRef));
                     
                     yield return new HathoraTaskUtils.WaitForTaskCompletion(
-	                    hathoraServerGetRoomLobbyInfo(startGameArgsByRef, TODO));
+	                    hathoraServerGetRoomLobbyInfo(startGameArgsByRef));
                     
                     startGameArgs = startGameArgsByRef.StartGameArgs;
                     break;
@@ -645,13 +645,18 @@ namespace TPSBR
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
 		private async Task<PickRoomExcludeKeyofRoomAllocations> hathoraServerGetRoomLobbyInfo(
-			StartGameArgsContainer _startGameArgsByRef, 
-			string _processId)
+			StartGameArgsContainer _startGameArgsByRef)
 		{
-			// Get all active Rooms
+			// Get process id
+			Process processInfo = await HathoraServerMgr.Singleton.GetSystemHathoraProcessAsync();
+			string procId = processInfo.ProcessId;
+			if (string.IsNullOrEmpty(procId))
+				return null;
+				
+			// Get all active Rooms by ProcessId
 			HathoraServerRoomApi roomApi = HathoraServerMgr.Singleton.ServerApis.ServerRoomApi;
 			List<PickRoomExcludeKeyofRoomAllocations> activeRooms =
-				await roomApi.GetActiveRoomsForProcessAsync(_processId);
+				await roomApi.GetActiveRoomsForProcessAsync(procId);
 
 			PickRoomExcludeKeyofRoomAllocations firstActiveRoom = activeRooms?.FirstOrDefault();
 			if (firstActiveRoom == null)
