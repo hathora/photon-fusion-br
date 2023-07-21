@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -20,11 +21,13 @@ namespace Hathora.Core.Scripts.Runtime.Common.Utils
         /// <param name="_condition"></param>
         /// <param name="_intervalMs"></param>
         /// <param name="_timeoutMs"></param>
+        /// <param name="_cancelToken">Recommended to prevent potential infinite loops</param>
         /// <exception cref="TimeoutException"></exception>
         public static async Task WaitUntil(
             Func<bool> _condition,
             int _intervalMs = 100,
-            int _timeoutMs = 5000)
+            int _timeoutMs = 5000,
+            CancellationToken _cancelToken = default)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             while (!_condition())
@@ -32,7 +35,7 @@ namespace Hathora.Core.Scripts.Runtime.Common.Utils
                 if (stopwatch.ElapsedMilliseconds > _timeoutMs)
                     throw new TimeoutException();
                 
-                await Task.Delay(_intervalMs);
+                await Task.Delay(_intervalMs, _cancelToken);
             }
         }
         

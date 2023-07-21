@@ -6313,6 +6313,7 @@ GameObject:
   - component: {fileID: 3102046719754940965}
   - component: {fileID: 3102046719754940989}
   - component: {fileID: 4713032666702594541}
+  - component: {fileID: 4850471487070999860}
   - component: {fileID: 4850471487070999858}
   - component: {fileID: 4850471487070999859}
   m_Layer: 5
@@ -6754,7 +6755,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hathoraServerConfig: {fileID: 11400000, guid: 548f8af0ca2741f4d95b2d7724eb01bc, type: 2}
   serverApis:
+    serverAppApi: {fileID: 0}
     serverProcessApi: {fileID: 4850471487070999858}
+    serverRoomApi: {fileID: 4850471487070999860}
 --- !u!224 &4754141159427679056
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6825,6 +6828,18 @@ MonoBehaviour:
     clientAuthApi: {fileID: 3102046719754940966}
     clientLobbyApi: {fileID: 3102046719754940967}
     clientRoomApi: {fileID: 3102046719754940964}
+--- !u!114 &4850471487070999860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3102046719754940960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38ed462bb83e5c84e94db708d92139e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &4969055882141550045
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -356,6 +357,9 @@ namespace TPSBR
                     yield return new HathoraTaskUtils.WaitForTaskCompletion(
                         hathoraServerGetIpAsync(startGameArgsByRef));
                     
+                    yield return new HathoraTaskUtils.WaitForTaskCompletion(
+	                    hathoraServerGetRoomLobbyInfo(startGameArgsByRef, TODO));
+                    
                     startGameArgs = startGameArgsByRef.StartGameArgs;
                     break;
                 }
@@ -631,6 +635,39 @@ namespace TPSBR
 			Log($"ConnectPeerCoroutine() finished");
 		}
 
+		/// <summary>
+		/// Without this, the Lobby will be set to the Dockerfile launch arg fallbacks.
+		/// - See `HathoraDocker.cs` || project root `.hathora/Dockerfile`.
+		/// - On success, sets _startGameArgsByRef.
+		/// </summary>
+		/// <param name="_startGameArgsByRef"></param>
+		/// <param name="_processId"></param>
+		/// <returns></returns>
+		/// <exception cref="NotImplementedException"></exception>
+		private async Task<PickRoomExcludeKeyofRoomAllocations> hathoraServerGetRoomLobbyInfo(
+			StartGameArgsContainer _startGameArgsByRef, 
+			string _processId)
+		{
+			// Get all active Rooms
+			HathoraServerRoomApi roomApi = HathoraServerMgr.Singleton.ServerApis.ServerRoomApi;
+			List<PickRoomExcludeKeyofRoomAllocations> activeRooms =
+				await roomApi.GetActiveRoomsForProcessAsync(_processId);
+
+			PickRoomExcludeKeyofRoomAllocations firstActiveRoom = activeRooms?.FirstOrDefault();
+			if (firstActiveRoom == null)
+			{
+				Debug.LogError("!firstActiveRoom");
+				return null;
+			}
+			
+			// Get the Lobby info from the Room -> set _startGameArgsByRef // TODO WIP 
+			// firstActiveRoom.RoomId
+			Debug.LogError("[Networking.hathoraServerGetRoomLobbyInfo] TODO WIP! " +
+				"This will replace the fallback lobby info with the Hathora Lobby's info.");
+
+			return firstActiveRoom;
+		}
+
 		/// <summary>Game started as a Photon "Host": We'll create a Lobby as a Client</summary>
         /// <param name="_startGameArgsByRef">Wrapped the Struct in a Class for ByRef while async</param>
         private async Task connectHathoraHostAsync(StartGameArgsContainer _startGameArgsByRef)
@@ -722,7 +759,10 @@ namespace TPSBR
             return hathoraRegion;
         }
 
-        /// <summary>TODO: Throw this in a Hathora server script</summary>
+        /// <summary>
+        /// Gets the ip:server from Hathora server `Process` API wrapper.
+        /// - On succcess, sets _startGameArgsByRef.
+        /// </summary>
         /// <param name="_startGameArgsContainer">ByRef</param>
         /// <returns>ByRef changes in _startGameArgsContainer</returns>
         private async Task<(IPAddress ip, ushort port)> hathoraServerGetIpAsync(
@@ -786,7 +826,7 @@ namespace TPSBR
 			Process process = null;
 			try
 			{
-				process = await HathoraServerMgr.Singleton.GetCachedSystemHathoraProcess();
+				process = await HathoraServerMgr.Singleton.GetSystemHathoraProcessAsync();
 			}
 			catch (Exception e)
 			{

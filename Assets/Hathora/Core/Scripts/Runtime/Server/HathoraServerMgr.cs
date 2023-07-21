@@ -20,11 +20,10 @@ namespace Hathora.Core.Scripts.Runtime.Server
     /// </summary>
     public class HathoraServerMgr : MonoBehaviour
     {
-        #region Serialized Fields
+        #region Vars
         [Header("(!) Top menu: Hathora/ServerConfigFinder")]
         [SerializeField]
         private HathoraServerConfig hathoraServerConfig;
-
         public HathoraServerConfig HathoraServerConfig
         {
             get {
@@ -47,8 +46,12 @@ namespace Hathora.Core.Scripts.Runtime.Server
         [Header("API Wrappers for Hathora SDK")]
         [SerializeField]
         private ServerApiContainer serverApis;
-        #endregion // Serialized Fields
-
+        
+        /// <summary>
+        /// Get the Hathora Server SDK API wrappers for all Server APIs.
+        /// (!) There may be high-level variants of the calls here; check 1st!
+        /// </summary>
+        public ServerApiContainer ServerApis => serverApis;
 
         private static HathoraServerMgr _singleton;
         public static HathoraServerMgr Singleton
@@ -67,24 +70,14 @@ namespace Hathora.Core.Scripts.Runtime.Server
             private set => _singleton = value;
         }
         
-        Process systemHathoraProcess;
-
         /// <summary>
-        /// systemHathoraProcess is cached on a deployed Hathora server,
-        /// if HathoraServerManager.HathoraServerConfig is serialized.
-        ///
-        /// This is called async at Awake; to prevent a run condition,
-        /// we await until it's != null
+        /// (!) This is set async on Awake; check for null.
+        /// For the public accessor, `see GetSystemHathoraProcessAsync()`.
         /// </summary>
-        public async Task<Process> GetCachedSystemHathoraProcess()
-        {
-            if (hathoraServerConfig == null)
-                return null;
-            
-            await HathoraTaskUtils.WaitUntil(() => systemHathoraProcess != null);
-            return systemHathoraProcess;
-        }
-        
+        private Process systemHathoraProcess;
+        #endregion // Vars
+
+
         /// <summary>
         /// systemHathoraProcess tries to set async @ Awake, but it could still take some time.
         /// We'll await until != null for 5s before timing out. 
@@ -92,12 +85,23 @@ namespace Hathora.Core.Scripts.Runtime.Server
         /// <returns></returns>
         public async Task<Process> GetSystemHathoraProcessAsync()
         {
+            if (hathoraServerConfig == null)
+                return null;
+
+            if (systemHathoraProcess != null)
+                return systemHathoraProcess;
+            
+            // ------------
+            // Await up to 5s to become !null =>
             CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(5));
+            await HathoraTaskUtils.WaitUntil(() => 
+                systemHathoraProcess != null, 
+                _cancelToken: cancellationTokenSource.Token);
 
             while (systemHathoraProcess == null)
             {
                 if (cancellationTokenSource.IsCancellationRequested)
-                    throw new TimeoutException("[HathoraServerMgr.GetProcessAsync] Timed out");
+                    throw new TimeoutException("[HathoraServerMgr.GetSystemHathoraProcessAsync] Timed out");
 
                 await Task.Delay(
                     TimeSpan.FromMilliseconds(100), 
@@ -137,11 +141,6 @@ namespace Hathora.Core.Scripts.Runtime.Server
             }
 
             Singleton = this;
-        }
-        
-        private void Start()
-        {
-
         }
 
         /// <summary>

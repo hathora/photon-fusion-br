@@ -5282,6 +5282,7 @@ GameObject:
   - component: {fileID: 6730436420827614718}
   - component: {fileID: 3964277563861138990}
   - component: {fileID: 3835845685163830001}
+  - component: {fileID: 8492899544923137325}
   m_Layer: 5
   m_Name: HathoraManagerBase
   m_TagString: Untagged
@@ -5390,10 +5391,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 896a08ad08518a146894b41d0e78aec1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hathoraServerConfig: {fileID: 11400000, guid: c65599dda8f4a354aa2953bb4665a361,
-    type: 2}
+  hathoraServerConfig: {fileID: 11400000, guid: c65599dda8f4a354aa2953bb4665a361, type: 2}
   serverApis:
-    _serverProcessApi: {fileID: 3835845685163830001}
+    serverAppApi: {fileID: 0}
+    serverProcessApi: {fileID: 3835845685163830001}
+    serverRoomApi: {fileID: 8492899544923137325}
 --- !u!114 &3835845685163830001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5404,6 +5406,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0a770ad03286a464d818286609b86379, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8492899544923137325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6730436420827614691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38ed462bb83e5c84e94db708d92139e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &6730436420891535536
