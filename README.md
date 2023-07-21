@@ -55,9 +55,11 @@ Check it out to learn more about hosting Photon Fusion on Hathora Cloud and acce
 ## Steps
 
 1. If building your Linux headless server via `HathoraServerConfig`, the Dockerfile will automatically add the `-args` necessary to start "as a server
-    * To see the default args, see [./hathora/Dockerfile](https://github.com/hathora/photon-fusion-br/blob/main/.hathora/Dockerfile) - or the official [Photon docs](https://doc.photonengine.com/fusion/current/game-samples/fusion-br/quickstart)
+    - To see the default args, see [./hathora/Dockerfile](https://github.com/hathora/photon-fusion-br/blob/main/.hathora/Dockerfile) - or the official [Photon docs](https://doc.photonengine.com/fusion/current/game-samples/fusion-br/quickstart)
 
 2. Use the Hathora Unity plugin to configure, build, and deploy your server on Hathora Cloud via `Assets/Hathora/HathoraServerConfig`. See [Hathora Unity Plugin](https://github.com/hathora/unity-plugin)
+    - After setting up, serialize @ `Menu` scene's `HathoraManager` GameObject's `HathoraServerConfig`.
+    - At the same spot, also serialize `HathoraClientConfig` next to the same file.
 
 4. Once deployed, create a room in Hathora Cloud via any method:
   - Create via `Menu` scene (as a Client): Click "Create" button at the bottom-right (adds a browsable Lobby)
