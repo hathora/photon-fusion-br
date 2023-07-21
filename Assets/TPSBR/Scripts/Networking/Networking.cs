@@ -48,7 +48,9 @@ namespace TPSBR
 	{
 		// HATHORA
 		private static HathoraServerConfig hathoraServerConfig => 
-			Global.Settings.HathoraServerConfig;
+			HathoraServerMgr.Singleton != null
+				? HathoraServerMgr.Singleton.HathoraServerConfig
+				: null; 
 
         public static HathoraRegion HATHORA_FALLBACK_REGION => Region.WashingtonDC;
 

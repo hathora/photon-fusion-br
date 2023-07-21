@@ -24,13 +24,48 @@ namespace Hathora.Core.Scripts.Runtime.Server
         [Header("(!) Top menu: Hathora/ServerConfigFinder")]
         [SerializeField]
         private HathoraServerConfig hathoraServerConfig;
+
+        public HathoraServerConfig HathoraServerConfig
+        {
+            get {
+				#if !UNITY_SERVER && !UNITY_EDITOR
+				Debug.LogError("[HathoraServerMgr] (!) Tried to get hathoraServerConfig " +
+                    "from Server when NOT a <server || editor>");
+				return null;
+				#endif // !UNITY_SERVER && !UNITY_EDITOR
+
+                if (hathoraServerConfig == null)
+                {
+                    Debug.LogError("[HathoraServerMgr.hathoraServerConfig.get] HathoraServerMgr exists, " +
+                        "but !HathoraServerConfig -- Did you forget to serialize a config into your scene?");
+                }
+
+                return hathoraServerConfig;
+            }
+        }
         
         [Header("API Wrappers for Hathora SDK")]
         [SerializeField]
         private ServerApiContainer serverApis;
         #endregion // Serialized Fields
-        
-        public static HathoraServerMgr Singleton { get; private set; }
+
+
+        private static HathoraServerMgr _singleton;
+        public static HathoraServerMgr Singleton
+        {
+            get {
+                if (_singleton == null)
+                {
+                    Debug.LogError("[HathoraServerMgr.Singleton.get] " +
+                        "!Singleton -- Did you forget to add a `HathoraServerMgr` " +
+                        "script to your scene (via a `HathoraManager` prefab?");
+                    return null;
+                }
+
+                return _singleton;
+            }
+            private set => _singleton = value;
+        }
         
         Process systemHathoraProcess;
 

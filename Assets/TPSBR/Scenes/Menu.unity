@@ -6752,7 +6752,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 896a08ad08518a146894b41d0e78aec1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hathoraServerConfig: {fileID: 11400000, guid: 9ace53687c34f6d49951f41d338ab100, type: 2}
+  hathoraServerConfig: {fileID: 11400000, guid: 548f8af0ca2741f4d95b2d7724eb01bc, type: 2}
   serverApis:
     serverProcessApi: {fileID: 4850471487070999858}
 --- !u!224 &4754141159427679056

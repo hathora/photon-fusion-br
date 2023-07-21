@@ -89,7 +89,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (Exception e)
             {
-                Debug.LogError($"[HathoraServerRoomApi.CreateRoomAwaitActiveAsync] " +
+                Debug.LogError("[HathoraServerRoomApi.CreateRoomAwaitActiveAsync] " +
                     $"Error => PollConnectionInfoUntilActiveAsync: {e.Message} " +
                     "(Check console.hathora.dev logs for +info)");
                 throw;
