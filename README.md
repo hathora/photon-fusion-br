@@ -43,22 +43,45 @@ Check it out to learn more about hosting Photon Fusion on Hathora Cloud and acce
 
 ## Requirements
 
-This sample game is compatible with the latest Unity Long Term Support (LTS) editor version, currently [2021 LTS](https://unity.com/releases/2021-lts). Please include **Linux Dedicated Server Build Support** in your installation, as well as **Linux Build Support (Mono)**.
+- This sample game is compatible with the latest Unity Long Term Support (LTS) editor version, currently [2021 LTS](https://unity.com/releases/2021-lts). Please include **Linux Dedicated Server Build Support** in your installation, as well as **Linux Build Support (Mono)**.
 
-**PLEASE NOTE:** You will also need a Photon account with an active Fusion app.
+- [Photon account](https://www.photonengine.com/fusion) with an active app created (for `AppId`).
 
-You will also need to have an account created for Hathora Cloud (sign up at: https://console.hathora.dev)
+- [Hathora Cloud account](https://console.hathora.dev) with an active app created (for `AppId`).
+
+- 
 <br><br>
 
 ## Steps
 
-1. Photon may automatically handle starting your headless Linux server in "Server" mode using CLI `-args`. See a template at [./hathora/Dockerfile]https://github.com/hathora/photon-fusion-br/blob/main/.hathora/Dockerfile) or [Photon docs](https://doc.photonengine.com/fusion/current/game-samples/fusion-br/quickstart)
-3. Use the Hathora Unity plugin to configure, build, and deploy your server on Hathora Cloud
+1. If building your Linux headless server via `HathoraServerConfig`, the Dockerfile will automatically add the `-args` necessary to start "as a server
+    * To see the default args, see [./hathora/Dockerfile](https://github.com/hathora/photon-fusion-br/blob/main/.hathora/Dockerfile) - or the official [Photon docs](https://doc.photonengine.com/fusion/current/game-samples/fusion-br/quickstart)
+
+2. Use the Hathora Unity plugin to configure, build, and deploy your server on Hathora Cloud via `Assets/Hathora/HathoraServerConfig`. See [Hathora Unity Plugin](https://github.com/hathora/unity-plugin)
+
 4. Once deployed, create a room in Hathora Cloud via any method:
   - Create via `Menu` scene (as a Client): Click "Create" button at the bottom-right (adds a browsable Lobby)
   - via `Hathora ServerConfig`: Click "Create Room" button in the "Create Room" dropdown group
   - via [Hathora Console](https://console.hathora.dev) in your browser at the top-right
+
 5. Play the `Menu` scene and join the new Room that appeared in a browsable Lobby list.
+
+## Altered Photon Files
+
+Within this repro, we have already made changes to support Hathora. However, if you are interested in the core changes, in order of importance:
+
+1. [Asssets/TPSBR/Scripts/Networking/Networking.cs](https://github.com/hathora/photon-fusion-br/blob/main/Assets/TPSBR/Scripts/Networking/Networking.cs)
+    * At `ConnectPeerCoroutine()`, if **Server** GameMode: Get Hathora Cloud Proccess/Room info to set Photon `startGameArgs`. Server name, max # of players, etc.
+
+2. [Assets/HathoraPhoton/HathoraMatchmaking.cs](https://github.com/hathora/photon-fusion-br/blob/main/Assets/HathoraPhoton/HathoraMatchmaking.cs)
+    * We override Photon's `Matchmaking.cs` to check if the user created a new Lobby from the `Menu` scene. Pure Photon will have the user be both a Client and Server. In Hathora, we want to create a dedicated server in the cloud (rather than have the player host as a server).
+
+3. Assets/TPSBR/Scenes/Menu.unity
+    * Added HathoraManager GameObject with manager scripts. 
+      * **(!)** Serialize your selected `HathoraServerConfig` & `HathoraClientConfig` files here!
+      * Added `HathoraCreateDoneTxt` & `HathoraCCreateStatusTxt` for status texts.
+      * Renamed `Matchmaking` prefab to `HathoraMatchmaking` -> Swapped `Matchmaking.cs` with `HathoraMatchmaking.cs`.
+          * When the users clicks "Create": instead of locally hosting as a server, we'll create a Hathora Cloud dedicated server (Room with Lobby) and show the Lobby list.
 
 ### Region Mapping
 
@@ -72,6 +95,20 @@ Within the demo, we have included [HathoraRegionMap.cs](https://github.com/hatho
 - "eu" : Frankfurt
 - "sa" : SaoPaulo
 - "kr" : Singapore
+
+## Default Dockerfile launch argss
+
+- `-batchmode` | Unity arg to run as headlesss server
+- `-nographics` | Unity arg to skips shaders/GUI; requires `-batchmode`
+- `-dedicatedServer` | Photon arg to automatically start as dedicated server
+- `-deathmatch` | Photon arg to automatically start `deathmatch` game mode
+- `-maxPlayers 5` | Photon arg
+- `-scene GenArea2` | Photon arg
+- `-region us` | Photon arg; see Photon<>Hathora mapping in the section below
+- `-serverName hathoraDeployedServer` | Shows up in the lobby List under name
+- `-sessionName hathoraDeployedServerSession` | Photon arg; unknown use (arbitrary?)
+- `-port 7777` | The default and recommended Docker container port
+- `-mode server` | Hathora arg to start as Server when using a `HathoraArgHandler` script; unnecessary in Photon.
 
 ## Troubleshooting
 ### Bugs
