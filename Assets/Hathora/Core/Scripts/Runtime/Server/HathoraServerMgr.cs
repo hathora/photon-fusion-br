@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
+using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Hathora.Core.Scripts.Runtime.Server.Models;
 using UnityEngine;
 
@@ -32,6 +33,22 @@ namespace Hathora.Core.Scripts.Runtime.Server
         public static HathoraServerMgr Singleton { get; private set; }
         
         Process systemHathoraProcess;
+
+        /// <summary>
+        /// systemHathoraProcess is cached on a deployed Hathora server,
+        /// if HathoraServerManager.HathoraServerConfig is serialized.
+        ///
+        /// This is called async at Awake; to prevent a run condition,
+        /// we await until it's != null
+        /// </summary>
+        public async Task<Process> GetCachedSystemHathoraProcess()
+        {
+            if (hathoraServerConfig == null)
+                return null;
+            
+            await HathoraTaskUtils.WaitUntil(() => systemHathoraProcess != null);
+            return systemHathoraProcess;
+        }
         
         /// <summary>
         /// systemHathoraProcess tries to set async @ Awake, but it could still take some time.
