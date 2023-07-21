@@ -74,7 +74,6 @@ crashlytics-build.properties
 [Aa]ssets/[Ss]treamingAssets/aa.meta
 [Aa]ssets/[Ss]treamingAssets/aa/*
 .idea
-Build*
 Utils/logs/*
 Utils/uploadToHathora/*
 utils/PrepUploadToHathora.ps1
@@ -95,3 +94,5 @@ HathoraServerConfig*.asset*
 **/.hathora/*.temp*
 .hathora/utils/*.blob
 *.sh~
+
+Build-Server
