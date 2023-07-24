@@ -11,11 +11,11 @@ This sample game was started from Photon's [Fusion Battle Royale Sample](https:/
 
 ### Overview
 
-The original [Hathora<>Photon Fusion BR Sample](https://doc.photonengine.com/fusion/current/game-samples/fusion-br/quickstart) was a Photon Fusion full game sample that has added:
+The original [Photon Fusion BR200](https://doc.photonengine.com/fusion/current/game-samples/fusion-br/quickstart) was a AAA and production-ready third-person battle royale shooter game sample. We have added integration to deploy a Photon Fusion dedicated server on Hathora Cloud. By deploying your Photon Fusion game on Hathora Cloud you unlock all the benefits of dedicated servers (cheat protection, improved latency, more stable connections), while also gaining access to [10+ global regions](https://hathora.dev/docs/faq/scale-globally) that map nicely with Photon Cloud's regions.
 
 * Hathora SDK
 * Hathora high-level wrappers
-* HathoraServerConfig build, deployment and room mgmt utils
+* HathoraServerConfig build, deployment and room management utils
 
 Check it out to learn more about hosting Photon Fusion on Hathora Cloud and accessing the Hathora SDK. We have made a few modifications to make this game easily deployable with a dedicated server on [Hathora Cloud](https://hathora.dev/docs).
 <br><br>
@@ -123,7 +123,7 @@ Within the demo, we have included [HathoraRegionMap.cs](https://github.com/hatho
 <br><br>
 
 ## Community
-For help, questions, advice, or discussions about Netcode for GameObjects and its samples, please join our [Discord Community](https://discord.gg/hathora). We have a growing community of multiplayer developers and our team is very responsive.
+For help, questions, advice, or discussions about Hathora Cloud and its samples, please join our [Discord Community](https://discord.gg/hathora). We have a growing community of multiplayer developers and our team is very responsive.
 <br><br>
 
 ## Other samples
