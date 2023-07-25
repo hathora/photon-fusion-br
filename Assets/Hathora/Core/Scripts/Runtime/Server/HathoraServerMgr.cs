@@ -23,6 +23,9 @@ namespace Hathora.Core.Scripts.Runtime.Server
     public class HathoraServerMgr : MonoBehaviour
     {
         #region Vars
+        /// <summary>Set null to !fake a procId in the Editor</summary>
+        private const string EDITOR_MOCK_PROC_ID = "93c253f2-6376-4755-94fa-b94d39acfd09";
+        
         [Header("(!) Top menu: Hathora/ServerConfigFinder")]
         [SerializeField]
         private HathoraServerConfig hathoraServerConfig;
@@ -83,12 +86,30 @@ namespace Hathora.Core.Scripts.Runtime.Server
             
             // Unlike Client calls, we can init immediately @ Awake
             validateReqs();
-            serverDeployedProcessId = Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
+            
+#if (UNITY_EDITOR)
+            serverDeployedProcessId = getServerDeployedProcessId(EDITOR_MOCK_PROC_ID);
+#else
+            serverDeployedProcessId = getServerDeployedProcessId();
+#endif // UNITY_EDITOR
+                
             initApis(_hathoraSdkConfig: null); // Base will create this
             
             _ = getHathoraProcessFromEnvVarAsync(); // !await
         }
+        
+        /// <param name="_overrideProcIdVal">Mock a val for testing within the Editor</param>
+        private string getServerDeployedProcessId(string _overrideProcIdVal = null)
+        {
+            if (!string.IsNullOrEmpty(_overrideProcIdVal))
+            {
+                Debug.Log("[HathoraServerMgr.getServerDeployedProcessId] (!) Overriding " +
+                    $"HATHORA_PROCESS_ID with mock val: `{_overrideProcIdVal}`");
 
+                return _overrideProcIdVal;
+            }
+            return Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
+        }
         private void setSingleton()
         {
             if (Singleton != null)
