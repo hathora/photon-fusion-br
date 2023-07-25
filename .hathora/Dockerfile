@@ -12,7 +12,7 @@ COPY ./Build-Server .
 RUN chmod +x ./Hathora-Unity-LinuxServer.x86_64
 
 # Run the Linux server in headless mode as a dedicated server
-CMD ./Hathora-Unity-LinuxServer.x86_64 \
+CMD ./Hathora-Unity_LinuxServer.x86_64 \
     -batchmode \
     -nographics \
     -dedicatedServer \
