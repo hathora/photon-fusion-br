@@ -71,8 +71,8 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         }
         
         
-        [SerializeField]
-        private bool _overwriteDockerfile = true;
+        [SerializeField, Tooltip("Normally this is true, but default false for Photon Fusion demo")]
+        private bool _overwriteDockerfile = false;
         
         /// <summary>
         /// If you have edited the generated Dockerfile or need to use a
