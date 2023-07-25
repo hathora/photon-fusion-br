@@ -15,6 +15,7 @@ using Fusion;
 using Fusion.Photon.Realtime;
 using Fusion.Plugin;
 using Fusion.Sockets;
+using Hathora.Cloud.Sdk.Api;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Hathora.Core.Scripts.Runtime.Server;
@@ -641,7 +642,6 @@ namespace TPSBR
 		/// - On success, sets _startGameArgsByRef.
 		/// </summary>
 		/// <param name="_startGameArgsByRef"></param>
-		/// <param name="_processId"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
 		private async Task<PickRoomExcludeKeyofRoomAllocations> hathoraServerGetRoomLobbyInfo(
@@ -652,12 +652,14 @@ namespace TPSBR
 			string procId = processInfo.ProcessId;
 			if (string.IsNullOrEmpty(procId))
 				return null;
-				
+		
+			// ----------------
 			// Get all active Rooms by ProcessId
 			HathoraServerRoomApi roomApi = HathoraServerMgr.Singleton.ServerApis.ServerRoomApi;
 			List<PickRoomExcludeKeyofRoomAllocations> activeRooms =
 				await roomApi.GetActiveRoomsForProcessAsync(procId);
 
+			// ----------------
 			PickRoomExcludeKeyofRoomAllocations firstActiveRoom = activeRooms?.FirstOrDefault();
 			if (firstActiveRoom == null)
 			{
@@ -665,10 +667,18 @@ namespace TPSBR
 				return null;
 			}
 			
-			// Get the Lobby info from the Room -> set _startGameArgsByRef // TODO WIP 
-			// firstActiveRoom.RoomId
-			Debug.LogError("[Networking.hathoraServerGetRoomLobbyInfo] TODO WIP! " +
-				"This will replace the fallback lobby info with the Hathora Lobby's info.");
+			// ----------------
+			// We have Room info, but we need Lobby: Get from RoomId =>
+			LobbyV2Api lobbyApi = HathoraServerMgr.Singleton.ServerApis.ServerProcessApi;
+			// Lobby lobby = await 
+			
+			
+			// ----------------
+			//// set _startGameArgsByRef 
+			// SessionRequest lobbyInitConfig = firstActiveRoom.
+			
+			_startGameArgsByRef.StartGameArgs.CustomLobbyName = firstActiveRoom.RoomId;
+			// _startGameArgsByRef.StartGameArgs.GameMode
 
 			return firstActiveRoom;
 		}
