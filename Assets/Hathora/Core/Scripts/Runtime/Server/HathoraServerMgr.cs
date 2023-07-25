@@ -64,7 +64,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
         /// (!) This is set async on Awake; check for null.
         /// For the public accessor, `see GetSystemHathoraProcessAsync()`.
         /// </summary>
-        private Process systemHathoraProcess;
+        private volatile Process cachedDeployedHathoraProcess;
         
         /// <summary>Set @ Awake, and only if deployed on Hathora</summary>
         private string serverDeployedProcessId;
@@ -84,17 +84,16 @@ namespace Hathora.Core.Scripts.Runtime.Server
 
             Debug.Log("[HathoraServerMgr] Awake");
             setSingleton();
-            
-            // Unlike Client calls, we can init immediately @ Awake
             validateReqs();
             
+            // Unlike Client calls, we can init immediately @ Awake
+            initApis(_hathoraSdkConfig: null); // Base will create this
+
 #if (UNITY_EDITOR)
             serverDeployedProcessId = getServerDeployedProcessId(EDITOR_MOCK_PROC_ID);
 #else
             serverDeployedProcessId = getServerDeployedProcessId();
 #endif // UNITY_EDITOR
-                
-            initApis(_hathoraSdkConfig: null); // Base will create this
             
             _ = getHathoraProcessFromEnvVarAsync(); // !await
         }
@@ -168,7 +167,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
             if (!hasHathoraProcId)
                 return;
             
-            this.systemHathoraProcess = await serverApis.ServerProcessApi.GetProcessInfoAsync(serverDeployedProcessId);
+            this.cachedDeployedHathoraProcess = await serverApis.ServerProcessApi.GetProcessInfoAsync(serverDeployedProcessId);
         }
         #endregion // Init
         
@@ -186,17 +185,17 @@ namespace Hathora.Core.Scripts.Runtime.Server
                 return null;
 
             // If we already have a cached Process, return it now ->
-            if (systemHathoraProcess != null)
-                return systemHathoraProcess;
+            if (cachedDeployedHathoraProcess != null)
+                return cachedDeployedHathoraProcess;
             
             // ------------
             // Await up to 5s to become !null =>
             CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(5));
             await HathoraTaskUtils.WaitUntil(() => 
-                systemHathoraProcess != null, 
+                cachedDeployedHathoraProcess != null, 
                 _cancelToken: cancellationTokenSource.Token);
 
-            while (systemHathoraProcess == null)
+            while (cachedDeployedHathoraProcess == null)
             {
                 if (cancellationTokenSource.IsCancellationRequested)
                     throw new TimeoutException($"[HathoraServerMgr.{nameof(GetCachedHathoraProcessAsync)}] Timed out");
@@ -206,7 +205,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
                     cancellationTokenSource.Token);
             }
 
-            return systemHathoraProcess;
+            return cachedDeployedHathoraProcess;
         }        
         
         

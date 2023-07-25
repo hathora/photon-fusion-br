@@ -15,12 +15,42 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
     {
         public Configuration HathoraSdkConfig { get; set; }
         protected HathoraServerConfig HathoraServerConfig { get; private set; }
-        
+
         // Shortcuts
-        public string AppId => HathoraServerConfig.HathoraCoreOpts.AppId;
+        public string AppId
+        {
+            get {
+                if (HathoraServerConfig == null)
+                {
+                    Debug.LogError("[HathoraServerApiWrapper.AppId.get] !HathoraServerConfig: " +
+                        "Did you forget to add init a newly-added API @ HathoraServerMgr.initApis() ?");
+                    return null;
+                }
+
+                if (HathoraServerConfig.HathoraCoreOpts == null)
+                {
+                    Debug.LogError("[HathoraServerApiWrapper.AppId.get] HathoraServerConfig exists, " +
+                        "but !HathoraServerConfig.HathoraCoreOpts");
+                    return null;
+                }
+
+                if (string.IsNullOrEmpty(HathoraServerConfig.HathoraCoreOpts.AppId))
+                {
+                    Debug.LogError("[HathoraServerApiWrapper.AppId.get] " +
+                        "!HathoraServerConfig.HathoraCoreOpts.AppId -- " +
+                        "Did you configure your HathoraServerConfig?");
+                    return null;
+                }
+
+                return HathoraServerConfig.HathoraCoreOpts.AppId;
+            }
+        }
         
 
         #region Init
+        private void Awake() => OnAwake();
+        protected virtual void OnAwake() { }
+
         /// <summary>
         /// Init anytime before calling an API. Server calls use auth token from HathoraServerInfo.
         /// </summary>
