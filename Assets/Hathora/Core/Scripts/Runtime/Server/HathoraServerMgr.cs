@@ -25,7 +25,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
     {
         #region Vars
         /// <summary>Set null to !fake a procId in the Editor</summary>
-        private const string EDITOR_MOCK_PROC_ID = null;
+        private const string EDITOR_MOCK_PROC_ID = "d21b0cd3-6ce2-40ea-b6bf-71ce80959aa7";
         
         [Header("(!) Top menu: Hathora/ServerConfigFinder")]
         [SerializeField]
@@ -247,7 +247,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
             // ----------------
             // We have Room info, but we need Lobby: Get from RoomId =>
             Lobby lobby = await ServerApis.ServerLobbyApi.GetLobbyInfoAsync(
-                getDeployInfoResult.Lobby.RoomId,
+                firstActiveRoom.RoomId,
                 _cancelToken);
 
             if (lobby == null || _cancelToken.IsCancellationRequested)
