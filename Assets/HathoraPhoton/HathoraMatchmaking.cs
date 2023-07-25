@@ -87,6 +87,12 @@ namespace HathoraPhoton
             Debug.Log($"{logPrefix} (as Photon 'Host')");
         
             // Ensure authed; already via HathoraPhotonClientMgr.Awake()
+            if (clientMgr == null)
+            {
+                Debug.LogError($"[HathoraMatchmaking.{nameof(createHathoraSessionAsync)}]: " +
+                    $"!clientMgr -> Do you have a hathoraPhotonClientMgr component added to HathoraManager gameObj?");   
+            }
+
             if (!clientMgr.HathoraClientSession.IsAuthed)
             {
                 Debug.Log($"{logPrefix} !IsAuthed");
