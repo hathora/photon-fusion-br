@@ -77,6 +77,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
         private void Awake()
         {
             #if !UNITY_SERVER && !UNITY_EDITOR
+            Debug.Log("(!) [HathoraServerMgr.Awake] Destroying - not a server");
             Destroy(this);
             return;
             #endif // !UNITY_SERVER
@@ -139,8 +140,17 @@ namespace Hathora.Core.Scripts.Runtime.Server
         /// <param name="_hathoraSdkConfig">We'll automatically create this, if empty</param>
         private void initApis(Configuration _hathoraSdkConfig = null)
         {
+            if (serverApis.ServerAppApi != null)
+                serverApis.ServerAppApi.Init(hathoraServerConfig, _hathoraSdkConfig);
+            
+            if (serverApis.ServerLobbyApi != null)
+                serverApis.ServerLobbyApi.Init(hathoraServerConfig, _hathoraSdkConfig);
+
             if (serverApis.ServerProcessApi != null)
                 serverApis.ServerProcessApi.Init(hathoraServerConfig, _hathoraSdkConfig);
+                        
+            if (serverApis.ServerRoomApi != null)
+                serverApis.ServerRoomApi.Init(hathoraServerConfig, _hathoraSdkConfig);
         }
         
         /// <summary>

@@ -652,6 +652,14 @@ namespace TPSBR
 		/// <summary>Sets hathoraDeployInfo</summary>
 		private async Task<HathoraGetDeployInfoResult> hathoraServerGetRoomLobbyInfo()
 		{
+			Log(nameof(hathoraServerGetRoomLobbyInfo));
+			
+			if (HathoraServerMgr.Singleton == null)
+			{
+				throw new NullReferenceException($"!{nameof(HathoraServerMgr)} - " +
+					"Did you serialize this as a component to HathoraManager");
+			}
+			
 			HathoraGetDeployInfoResult deployInfo = await HathoraServerMgr.Singleton.ServerGetDeployedInfoAsync();
 			Assert.IsTrue(deployInfo.CheckIsValid());
 				
