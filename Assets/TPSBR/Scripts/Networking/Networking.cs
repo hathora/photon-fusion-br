@@ -669,7 +669,7 @@ namespace TPSBR
 			
 			// ----------------
 			// We have Room info, but we need Lobby: Get from RoomId =>
-			LobbyV2Api lobbyApi = HathoraServerMgr.Singleton.ServerApis.ServerProcessApi;
+			// LobbyV2Api lobbyApi = HathoraServerMgr.Singleton.ServerApis.ServerProcessApi;
 			// Lobby lobby = await 
 			
 			

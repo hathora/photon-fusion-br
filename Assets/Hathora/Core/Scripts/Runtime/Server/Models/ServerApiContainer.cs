@@ -32,6 +32,10 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         // private HathoraServerDeployApi serverDeployApi;
         // public HathoraServerDeployApi ServerDeployApi => serverDeployApi;
         
+        [SerializeField]
+        private HathoraServerLobbyApi serverLobbyApi;
+        public HathoraServerLobbyApi ServerLobbyApi => serverLobbyApi;
+        
         [FormerlySerializedAs("_serverProcessApi")]
         [SerializeField]
         private HathoraServerProcessApi serverProcessApi;
