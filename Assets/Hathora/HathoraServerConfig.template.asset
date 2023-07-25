@@ -21,7 +21,7 @@ MonoBehaviour:
       _forceNewToken: 0
   _linuxHathoraAutoBuildOpts:
     _serverBuildDirName: Build-Server
-    _serverBuildExeName: Hathora-Unity-LinuxServer.x86_64
+    _serverBuildExeName: Hathora-Unity_LinuxServer.x86_64
     _isDevBuild: 1
     _cleanBuildDir: 1
     _overwriteDockerfile: 1
@@ -45,4 +45,4 @@ MonoBehaviour:
         _transportNickname: 
   _hathoraLobbyRoomOpts:
     _hathoraRegion: 1
-    hathoraRegionSelectedIndexUi: 1
+    _hathoraRegionSelectedIndexUi: 1
