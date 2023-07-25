@@ -5480,7 +5480,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 896a08ad08518a146894b41d0e78aec1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hathoraServerConfig: {fileID: 11400000, guid: c65599dda8f4a354aa2953bb4665a361, type: 2}
+  hathoraServerConfig: {fileID: 11400000, guid: 548f8af0ca2741f4d95b2d7724eb01bc, type: 2}
   serverApis:
     serverAppApi: {fileID: 3858738400710554711}
     serverLobbyApi: {fileID: 4499951406733009336}
