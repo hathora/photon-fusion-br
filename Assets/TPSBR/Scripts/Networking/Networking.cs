@@ -652,6 +652,7 @@ namespace TPSBR
 		/// <summary>Sets hathoraDeployInfo</summary>
 		private async Task<HathoraGetDeployInfoResult> hathoraServerGetRoomLobbyInfo()
 		{
+			string errLogPrefix = $"[Networking.{nameof(hathoraServerGetRoomLobbyInfo)}]"; 
 			Log(nameof(hathoraServerGetRoomLobbyInfo));
 			
 			if (HathoraServerMgr.Singleton == null)
@@ -661,11 +662,12 @@ namespace TPSBR
 			}
 			
 			HathoraGetDeployInfoResult deployInfo = await HathoraServerMgr.Singleton.ServerGetDeployedInfoAsync();
-			Assert.IsTrue(deployInfo.CheckIsValid());
+			Assert.IsNotNull(deployInfo, $"{errLogPrefix} Expected deployInfo");
+			Assert.IsTrue(deployInfo.CheckIsValid(), $"{errLogPrefix} Expected deployInfo.CheckIsValid()");
 				
-			SessionRequest sessionReq = deployInfo.GetLobbyInitConfig<SessionRequest>();
-			Assert.IsNotNull(sessionReq.IPAddress);
-			Assert.IsTrue(sessionReq.Port > 0);
+			SessionRequest sessionReq = deployInfo.GetLobbyInitConfig<SessionRequest>(); // ByVal
+			Assert.IsNotNull(sessionReq.IPAddress, $"{errLogPrefix} Expected sessionReq.IPAddress");
+			Assert.IsTrue(sessionReq.Port > 0, $"{errLogPrefix} Expected sessionReq.Port > 0");
 
 			return deployInfo;
 		}

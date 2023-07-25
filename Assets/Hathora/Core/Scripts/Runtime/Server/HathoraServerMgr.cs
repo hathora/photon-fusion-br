@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Client;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Common.Utils;
+using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
 using Hathora.Core.Scripts.Runtime.Server.Models;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
     {
         #region Vars
         /// <summary>Set null to !fake a procId in the Editor</summary>
-        private const string EDITOR_MOCK_PROC_ID = "93c253f2-6376-4755-94fa-b94d39acfd09";
+        private const string EDITOR_MOCK_PROC_ID = null;
         
         [Header("(!) Top menu: Hathora/ServerConfigFinder")]
         [SerializeField]
@@ -134,22 +135,16 @@ namespace Hathora.Core.Scripts.Runtime.Server
         }
         
         /// <summary>
-        /// Init all Server [runtime] API wrappers. Uses serialized HathoraServerConfig.
+        /// Init all Server [runtime] API wrappers. Passes serialized HathoraServerConfig.
+        /// (!) Unlike ClientMgr that are Mono-derived, we init via Constructor instead of Init().
         /// </summary>
         /// <param name="_hathoraSdkConfig">We'll automatically create this, if empty</param>
         private void initApis(Configuration _hathoraSdkConfig = null)
         {
-            if (serverApis.ServerAppApi != null)
-                serverApis.ServerAppApi.Init(hathoraServerConfig, _hathoraSdkConfig);
-            
-            if (serverApis.ServerLobbyApi != null)
-                serverApis.ServerLobbyApi.Init(hathoraServerConfig, _hathoraSdkConfig);
-
-            if (serverApis.ServerProcessApi != null)
-                serverApis.ServerProcessApi.Init(hathoraServerConfig, _hathoraSdkConfig);
-                        
-            if (serverApis.ServerRoomApi != null)
-                serverApis.ServerRoomApi.Init(hathoraServerConfig, _hathoraSdkConfig);
+            serverApis.ServerAppApi = new HathoraServerAppApi(hathoraServerConfig, _hathoraSdkConfig);
+            serverApis.ServerLobbyApi = new HathoraServerLobbyApi(hathoraServerConfig, _hathoraSdkConfig);
+            serverApis.ServerProcessApi = new HathoraServerProcessApi(hathoraServerConfig, _hathoraSdkConfig);
+            serverApis.ServerRoomApi = new HathoraServerRoomApi(hathoraServerConfig, _hathoraSdkConfig);
         }
         
         /// <summary>

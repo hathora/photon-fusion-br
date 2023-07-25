@@ -97,9 +97,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6730436420827614691, guid: e4dcbec2e4ad0514a94f944ced942c4d, type: 3}
       propertyPath: m_Name
-      value: HathoraManager
+      value: HathoraPhotonManager
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3858738400710554711, guid: e4dcbec2e4ad0514a94f944ced942c4d, type: 3}
+    - {fileID: 4499951406733009336, guid: e4dcbec2e4ad0514a94f944ced942c4d, type: 3}
+    - {fileID: 3835845685163830001, guid: e4dcbec2e4ad0514a94f944ced942c4d, type: 3}
+    - {fileID: 8492899544923137325, guid: e4dcbec2e4ad0514a94f944ced942c4d, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: e4dcbec2e4ad0514a94f944ced942c4d, type: 3}
 --- !u!1 &235978345099422418 stripped
 GameObject:
