@@ -1,11 +1,14 @@
 // Created by dylan@hathora.dev
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Common.Utils;
+using Newtonsoft.Json;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Hathora.Core.Scripts.Runtime.Server.Models
@@ -73,14 +76,36 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
             ProcessInfo != null && 
             Lobby != null && 
             FirstActiveRoomForProcess != null;
-        
+
         /// <summary>
         /// You probably want to parse the InitialConfig to your own model.
         /// </summary>
         /// <typeparam name="TInitConfig"></typeparam>
         /// <returns></returns>
-        public TInitConfig GetLobbyInitConfig<TInitConfig>() => 
-            (TInitConfig)Lobby?.InitialConfig;
+        public TInitConfig GetLobbyInitConfig<TInitConfig>()
+        {
+            string logPrefix = $"[HathoraGetDeployInfoResult.{nameof(GetLobbyInitConfig)}]";
+
+            object initConfigObj = Lobby?.InitialConfig;
+            if (initConfigObj == null)
+            {
+                Debug.LogError($"{logPrefix} !initConfigObj");
+                return default;
+            }
+
+            try
+            {
+                string jsonString = initConfigObj as string;
+                TInitConfig initConfigParsed = JsonConvert.DeserializeObject<TInitConfig>(jsonString);
+
+                return initConfigParsed;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"{logPrefix} Error parsing initConfigObj: {e}");
+                throw;
+            }
+        }
         #endregion // Utils
 
         
