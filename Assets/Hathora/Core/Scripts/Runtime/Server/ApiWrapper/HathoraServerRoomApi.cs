@@ -273,6 +273,12 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             Debug.Log($"{logPrefix} Success: <color=yellow>" +
                 $"getActiveRoomsResultList count: {getActiveRoomsResultList.Count}</color>");
 
+            if (getActiveRoomsResultList.Count > 0)
+            {
+                Debug.Log($"{logPrefix} Success: <color=yellow>" +
+                    $"getActiveRoomsResultList[0]: {getActiveRoomsResultList[0].ToJson()}</color>");
+            }
+
             return getActiveRoomsResultList;
         }
 
