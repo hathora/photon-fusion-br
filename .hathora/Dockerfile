@@ -9,7 +9,7 @@ FROM ubuntu:22.04
 COPY ./Build-Server .
 
 # Give execute permission for the script
-RUN chmod +x ./Hathora-Unity-LinuxServer.x86_64
+RUN chmod +x ./Hathora-Unity_LinuxServer.x86_64
 
 # Run the Linux server in headless mode as a dedicated server
 # Add `-scene <sceneName>` to load a scene before loading the mode
