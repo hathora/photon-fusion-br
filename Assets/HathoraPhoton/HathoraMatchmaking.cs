@@ -6,6 +6,7 @@ using Fusion;
 using Fusion.Photon.Realtime;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Common.Extensions;
+using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Newtonsoft.Json;
 using TMPro;
 using TPSBR;
@@ -126,11 +127,14 @@ namespace HathoraPhoton
         {
             Debug.Log($"[HathoraMatchmaking] onCreateLobbySuccessUI");
 
+            // Prepare data for UI
             string friendlyHathoraRegion = _lobby.Region.ToString().SplitPascalCase();
-            hathoraCreateDoneStatusTxt.text = $"Created Lobby: {_lobby.RoomId} ({friendlyHathoraRegion})";
+            SessionRequest lobbyInitConfig = HathoraUtils.GetLobbyInitConfig<SessionRequest>(_lobby);
+            
+            // Set UI vals -> Set visible
+            hathoraCreateDoneStatusTxt.text = $"Created Lobby: {lobbyInitConfig.DisplayName} ({friendlyHathoraRegion})";
             hathoraCreateDoneStatusTxt.gameObject.SetActive(true);
             createSettingsModalPnl.SetActive(false);
-            
             toggleCreateUi(_isCreating: false);
         }
 

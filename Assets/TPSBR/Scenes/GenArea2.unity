@@ -303,6 +303,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HathoraPhotonManager
       objectReference: {fileID: 0}
+    - target: {fileID: 7575894869703629087, guid: 6b06b966039e0024c99fe527df9fc1a5, type: 3}
+      propertyPath: debugEditorMockProcId
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6b06b966039e0024c99fe527df9fc1a5, type: 3}
 --- !u!1 &430373546
