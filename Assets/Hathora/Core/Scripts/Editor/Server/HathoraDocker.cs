@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion;
 using Hathora.Core.Scripts.Editor.Common;
 using Hathora.Core.Scripts.Runtime.Server.Models;
 using Debug = UnityEngine.Debug;
@@ -143,56 +142,5 @@ CMD [ \
 
             return dockerStr;
         }
-        
-        #region Photon
-        /// <summary>
-        /// This will be the default Dockerfile for Photon Fusion, adding `extraLaunchArgs`.
-        /// These are all fallbacks: They can be overridden @ Networking.cs, if `GameMode is Server`.
-        /// </summary>
-        /// <param name="_serverPaths"></param>
-        /// <param name="_fallbackGameMode"></param>
-        /// <param name="_fallbackMaxPlayers"></param>
-        /// <param name="_fallbackSceneName"></param>
-        /// <param name="_fallbackPhotonRegion"></param>
-        /// <param name="_fallbackServerName"></param>
-        /// <param name="_fallbackServerSessionName"></param>
-        /// <param name="_fallbackPort"></param>
-        /// <returns></returns>
-        public static string GeneratePhotonFusionDockerfileStr(
-            HathoraServerPaths _serverPaths,
-            string _fallbackGameMode = "deathmatch",
-            int _fallbackMaxPlayers = 5,
-            string _fallbackSceneName = "GenArea2",
-            string _fallbackPhotonRegion = "us",
-            string _fallbackServerName = "hathoraDeployedServer",
-            string _fallbackServerSessionName = "hathoraDeployedServerSession",
-            int _fallbackPort = 7777
-            )
-        {
-            // #############################################
-            // -dedicatedServer
-            // -deathmatch
-            // -maxPlayers 5
-            // -scene GenArea2
-            // -region us
-            // -serverName hathoraDeployedServer
-            // -sessionName hathoraDeployedServerSession
-            // -port 7777
-            // #############################################
-            List<string> photonArgs = new()
-            {
-                "-dedicatedServer", // Always, for headless builds
-                _fallbackGameMode, // "deathmatch"
-                $"-maxPlayers {_fallbackMaxPlayers}", // "5"
-                $"-scene {_fallbackSceneName}", // "GenArea2"
-                $"-region {_fallbackPhotonRegion}", // "us"
-                $"-serverName {_fallbackServerName}", // "hathoraDeployedServer"
-                $"-sessionName {_fallbackServerSessionName}", // "hathoraDeployedServerSession"
-                $"-port {_fallbackPort}", // "7777"
-            };
-
-            return GenerateDockerFileStr(_serverPaths, photonArgs);
-        }
-        #endregion // Photon
     }
 }
