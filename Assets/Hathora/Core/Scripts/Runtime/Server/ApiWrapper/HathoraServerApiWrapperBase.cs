@@ -78,7 +78,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             string _funcName,
             ApiException _apiException)
         {
-            UnityEngine.Debug.LogError($"[{_className}.{_funcName}] API Error: " +
+            Debug.LogError($"[{_className}.{_funcName}] API Error: " +
                 $"{_apiException.ErrorCode} {_apiException.ErrorContent} | {_apiException.Message}");
 
             throw _apiException;

@@ -114,6 +114,9 @@ namespace TPSBR
 				
 				// Cache the Process, Room and Lobby info => replace the Photon SessionRequest
 				this.hathoraDeployInfo = await hathoraServerGetRoomLobbyInfo();
+				
+				// Earlier, we serialized the SessionRequest @ HathoraMatchmaking.cs (photonHostCreateHathoraLobbyAsync)
+				// If we don't replace the request, Photon lobby will show the default -args we provided (maxPlayers, lobbyName)
 				request = hathoraDeployInfo.GetLobbyInitConfig<SessionRequest>();
 			}
 			#endregion // Hathora
@@ -370,9 +373,16 @@ namespace TPSBR
 	                
 	                if (hathoraDeployInfo is { HasPort: true })
 	                {
+		                // Set the Photon SessionProperties (maps to Hathora Lobby InitConfig)
+		                startGameArgs.SessionProperties = CreateSessionProperties(peer.Request);
+		                
+		                // Pass StartGameArgs in a ByRef container, then set the updated changes
 		                StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
+		                
 		                yield return new HathoraTaskUtils.WaitForTaskCompletion(
-			                setCustomHathoraServerPublicAddress(startGameArgsByRef));
+			                setCustomHathoraServerPublicAddressFromCached(startGameArgsByRef));
+		                
+		                startGameArgs = startGameArgsByRef.StartGameArgs;
 	                }
 	                
 	                break;
@@ -381,8 +391,8 @@ namespace TPSBR
                 case GameMode.Host:
                 {
 	                StatusDescription = "Connecting to Hathora (as Host)";
-	                throw new NotImplementedException("Host should have been handled " +
-		                "at HathoraMatchmaking.cs, then changed to a Client (or hid the 'Create' UI)");
+	                throw new NotImplementedException("[Networking.ConnectPeerCoroutine] `Host` should have been handled " +
+		                "at HathoraMatchmaking.cs - theoretically, this should never trigger.");
                 }
 
                 case GameMode.Client:
@@ -666,8 +676,7 @@ namespace TPSBR
 			Assert.IsTrue(deployInfo.CheckIsValid(), $"{errLogPrefix} Expected deployInfo.CheckIsValid()");
 				
 			SessionRequest sessionReq = deployInfo.GetLobbyInitConfig<SessionRequest>(); // ByVal
-			Assert.IsNotNull(sessionReq.IPAddress, $"{errLogPrefix} Expected sessionReq.IPAddress");
-			Assert.IsTrue(sessionReq.Port > 0, $"{errLogPrefix} Expected sessionReq.Port > 0");
+			Assert.IsTrue(sessionReq.MaxPlayers > 0, $"{errLogPrefix} Expected sessionReq.MaxPlayers > 0");
 
 			return deployInfo;
 		}
@@ -746,11 +755,12 @@ namespace TPSBR
 			return ipPort;
 		}
 
-		/// <summary>Validates -> logs -> sets ip:port</summary>
+		/// <summary>Validates -> logs -> sets ip:port from cached vals</summary>
 		/// <param name="_startGameArgsContainer">Passed ByRef to set `CustomPublicAddress`</param>
-		private async Task setCustomHathoraServerPublicAddress(
+		private async Task setCustomHathoraServerPublicAddressFromCached(
 			StartGameArgsContainer _startGameArgsContainer)
 		{
+			// Get info from hathoraDeployInfo cache
 			(IPAddress ip, ushort port) connectInfo = await hathoraDeployInfo.GetHathoraServerIpPortAsync();
             Log($"[setCustomPublicAddress] ip:port == `{connectInfo.ip}:{connectInfo.port}`");
 

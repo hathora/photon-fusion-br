@@ -144,15 +144,20 @@ namespace HathoraPhoton
         /// <returns></returns>
         private async Task<Lobby> photonHostCreateHathoraLobbyAsync(SessionRequest _request)
         {
-            _request.UserID      = Context.PlayerData.UserID;
-            _request.CustomLobby = GetLobbyName();
-        
             // Get the selected Photon Region -> Map to closest Hathora Region
             // "Any" region falls back to WashingtonDC
             string photonRegionStr =  base.GetCurrentRegion(); // From top-left dropdown in `Menu` scene
             HathoraRegion hathoraRegion = HathoraRegionMap.GetHathoraRegionEnumFromPhoton(
                 photonRegionStr); // alt: getHathoraRegionFromPhoton()
             
+            // Copy over some Photon base request SessionRequest sets (from Matchmaking.cs)
+            _request.UserID = Context.PlayerData.UserID;
+            _request.CustomLobby = GetLobbyName();
+            
+            // Originally "Host"; now "Server" since Hathora (not us) will handle this
+            _request.GameMode = GameMode.Server;
+            
+            // We'll later deserialize this into a SessionRequest @ Networking.cs (StartGame)
             string initConfigJsonStr = JsonConvert.SerializeObject(_request);
 
             Lobby lobby = await clientMgr.CreateLobbyAsync(

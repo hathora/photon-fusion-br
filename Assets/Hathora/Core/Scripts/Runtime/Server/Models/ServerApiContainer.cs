@@ -2,8 +2,6 @@
 
 using System;
 using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
-using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Hathora.Core.Scripts.Runtime.Server.Models
 {
@@ -22,7 +20,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
     {
         public HathoraServerAppApi ServerAppApi { get; set; }
         // public HathoraServerBuildApi ServerBuildApi { get; set; } // Not generally intended for runtime use
-        public HathoraServerLobbyApi ServerLobbyApi {get;set; }
+        public HathoraServerLobbyApi ServerLobbyApi { get;set; }
         public HathoraServerProcessApi ServerProcessApi { get; set; }
         public HathoraServerRoomApi ServerRoomApi { get; set; }
     }

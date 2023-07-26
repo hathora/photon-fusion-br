@@ -24,8 +24,10 @@ namespace Hathora.Core.Scripts.Runtime.Server
     public class HathoraServerMgr : MonoBehaviour
     {
         #region Vars
-        /// <summary>Set null to !fake a procId in the Editor</summary>
-        private const string EDITOR_MOCK_PROC_ID = "d21b0cd3-6ce2-40ea-b6bf-71ce80959aa7";
+        /// <summary>Set null/empty to !fake a procId in the Editor</summary>
+        [SerializeField, Tooltip("When in the Editor, we'll get this Hathora ProcessInfo " +
+             "as if deployed on Hathora; useful for debugging")]
+        private string debugEditorMockProcId;
         
         [Header("(!) Top menu: Hathora/ServerConfigFinder")]
         [SerializeField]
@@ -91,7 +93,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
             initApis(_hathoraSdkConfig: null); // Base will create this
 
 #if (UNITY_EDITOR)
-            serverDeployedProcessId = getServerDeployedProcessId(EDITOR_MOCK_PROC_ID);
+            serverDeployedProcessId = getServerDeployedProcessId(debugEditorMockProcId);
 #else
             serverDeployedProcessId = getServerDeployedProcessId();
 #endif // UNITY_EDITOR
@@ -130,7 +132,8 @@ namespace Hathora.Core.Scripts.Runtime.Server
             if (hathoraServerConfig == null)
             {
                 Debug.LogError("[HathoraServerMgr] !HathoraServerConfig; " +
-                    $"Serialize to {gameObject.name}.{nameof(HathoraServerMgr)}");
+                    $"Serialize to {gameObject.name}.{nameof(HathoraServerMgr)} (if you want " +
+                    $"server runtime calls from Server standalone || Editor");
             }
         }
         
