@@ -5,6 +5,11 @@
 # "Jammy Jellyfish" LTS
 FROM ubuntu:22.04
 
+# Update system and install certificates: Prevents TLS/SSL (https) errs, notably with UnityWebRequests
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    update-ca-certificates
+
 # Copy the server build files into the container, if Dockerfile is @ parent
 COPY ./Build-Server .
 
