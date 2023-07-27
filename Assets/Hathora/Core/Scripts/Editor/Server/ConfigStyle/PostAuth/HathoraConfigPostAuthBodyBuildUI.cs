@@ -223,7 +223,7 @@ namespace Hathora.Core.Scripts.Editor.Server.ConfigStyle.PostAuth
             if (!dockerfileExists)
             {
                 // TODO: Add UI opts within HathoraServerConfig.Build >>
-                HathoraDocker.GeneratePhotonFusionDockerfileStr(_paths);
+                HathoraDocker.GenerateDockerFileStr(_paths);
                 // HathoraDocker.GenerateDockerFileStr(_paths);
             }
         }
