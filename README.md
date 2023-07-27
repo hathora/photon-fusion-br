@@ -44,11 +44,9 @@ Check it out to learn more about hosting Photon Fusion on Hathora Cloud and acce
 
 - This sample game is compatible with the latest Unity Long Term Support (LTS) editor version, currently [2021 LTS](https://unity.com/releases/2021-lts). Please include **Linux Dedicated Server Build Support** in your installation, as well as **Linux Build Support (Mono)**.
 
-- [Photon account](https://www.photonengine.com/fusion) with an active app created (for `AppId`).
+- [Photon account](https://www.photonengine.com/fusion) with an active app created (for `App Id Fusion`).
 
 - [Hathora Cloud account](https://console.hathora.dev) with an active app created (for `AppId`).
-
-- 
 <br><br>
 
 ## Steps
