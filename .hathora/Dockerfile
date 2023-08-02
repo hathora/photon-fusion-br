@@ -3,31 +3,31 @@
 # (!) We unchecked 'overwrite Dockerfile' and is now customized below (!)
 ############################################################################
 
-FROM ubuntu
+# Using 'Jammy Jellyfish' Ubuntu LTS
+FROM ubuntu:22.04
 
-# Copy the server build files into the container, if Dockerfile is @ parent
-COPY ./Build-Server .
-
-# Update system and install certificates: Prevents TLS/SSL (https) errs
+# Update system and install certificates: Prevents TLS/SSL (https) errs, notably with UnityWebRequests
 RUN apt-get update && \
     apt-get install -y ca-certificates && \
     update-ca-certificates
+
+# Copy the server build files into the container, if Dockerfile is @ parent
+COPY ./Build-Server .
 
 RUN chmod +x ./Hathora-Unity-LinuxServer.x86_64
 
 # Run the Linux server in headless mode as a dedicated server
 # The Photon args will be the fallback Server session if unset @ Networking.cs
-CMD ./Hathora-Unity-LinuxServer.x86_64 \
-    -batchmode \
-    -nographics \
-    -dedicatedServer \
-    -deathmatch \
-    -maxPlayers 5 \
-    -scene GenArea2 \
-    -region us \
-    -serverName hathoraDeployedServer \
-    -sessionName hathoraDeployedServerSession \
-    -port 7777
-
-# Used this to just keep the container running so we could just kubectl in to set env variable HATHORA_PORT, but we should get that info from API call
-# CMD ["sleep","500"]
+CMD [
+	"./Hathora-Unity-LinuxServer.x86_64", \
+    "-batchmode", \
+    "-nographics", \
+    "-dedicatedServer", \
+    "-deathmatch", \
+    "-maxPlayers", "5", \
+    "-scene", "GenArea2", \
+    "-region", "us", \
+    "-serverName", "hathoraDeployedServer", \
+    "-sessionName", "hathoraDeployedServerSession", \
+    "-port", "7777"
+]
