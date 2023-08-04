@@ -3,7 +3,6 @@
 
 [![UnityVersion](https://img.shields.io/badge/Unity-2021.3%20LTS-57b9d3.svg?logo=unity&color=2196F3)](https://unity.com/releases/editor/qa/lts-releases)
 [![HathoraSdkVersion](https://img.shields.io/badge/Hathora%20SDK-1.5.1-57b9d3.svg?logo=none&color=AF64EE)](https://hathora.dev/docs)
-![image](https://assetstorev1-prd-cdn.unity3d.com/key-image/44946285-5088-4f57-b51b-a996184da940.webp)
 <br><br>
 
 This sample game was started from Photon's [Fusion Battle Royale Sample](https://doc.photonengine.com/fusion/current/game-samples/fusion-br/quickstart)
@@ -45,11 +44,9 @@ Check it out to learn more about hosting Photon Fusion on Hathora Cloud and acce
 
 - This sample game is compatible with the latest Unity Long Term Support (LTS) editor version, currently [2021 LTS](https://unity.com/releases/2021-lts). Please include **Linux Dedicated Server Build Support** in your installation, as well as **Linux Build Support (Mono)**.
 
-- [Photon account](https://www.photonengine.com/fusion) with an active app created (for `AppId`).
+- [Photon account](https://www.photonengine.com/fusion) with an active app created (for `App Id Fusion`).
 
 - [Hathora Cloud account](https://console.hathora.dev) with an active app created (for `AppId`).
-
-- 
 <br><br>
 
 ## Steps
@@ -128,7 +125,7 @@ For help, questions, advice, or discussions about Hathora Cloud and its samples,
 
 ## Other samples
 ### Hathora Unity Plugin
-[Hathora Unity Plugin (with FishNet and Mirror demos)](https://github.com/hathora/hathora-unity) is our Unity Plugin that comes with FishNet and Mirror networking demos. It allows you to deploy your game on Hathora Cloud directly from our editor plugin.
+[Hathora Unity Plugin (with FishNet and Mirror demos)](https://github.com/hathora/unity-plugin) is our Unity Plugin that comes with FishNet and Mirror networking demos. It allows you to deploy your game on Hathora Cloud directly from our editor plugin.
 
 ### Unity NGO Sample
 [@hathora/unity-ngo-sample](https://github.com/hathora/unity-ngo-sample) takes Unity's 2D Space Shooter sample game with *Unity NetCode for Game Objects* (NGO) and modifies it to be easily deployable on Hathora Cloud.
