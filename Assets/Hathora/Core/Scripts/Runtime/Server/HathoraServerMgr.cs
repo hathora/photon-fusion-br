@@ -113,6 +113,7 @@ namespace Hathora.Core.Scripts.Runtime.Server
             }
             return Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
         }
+        
         private void setSingleton()
         {
             if (Singleton != null)
