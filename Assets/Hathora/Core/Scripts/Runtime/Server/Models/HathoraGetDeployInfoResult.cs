@@ -26,13 +26,14 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         
 
         #region Utils
+        /// <summary>Sanity check</summary>
         public bool HasPort => ProcessInfo?.ExposedPort?.Port > 0;
         
         /// <summary>
         /// Return host:port sync (opposed to GetHathoraServerIpPort async).
         /// </summary>
         /// <returns></returns>
-        public (string host, ushort port) GetHathoraServerHostPort()
+        public (string _host, ushort _port) GetHathoraServerHostPort()
         {
             ExposedPort connectInfo = ProcessInfo?.ExposedPort;
 
@@ -48,9 +49,9 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
         /// Async since we use Dns to translate the Host to IP.
         /// </summary>
         /// <returns></returns>
-        public async Task<(IPAddress ip, ushort port)> GetHathoraServerIpPortAsync()
+        public async Task<(IPAddress _ip, ushort _port)> GetHathoraServerIpPortAsync()
         {
-            (IPAddress ip, ushort port) ipPort;
+            (IPAddress _ip, ushort _port) ipPort;
             
             ExposedPort connectInfo = ProcessInfo?.ExposedPort;
 
@@ -61,8 +62,8 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
                 return default;
             }
 
-            ipPort.ip = await HathoraUtils.ConvertHostToIpAddress(connectInfo.Host);
-            ipPort.port = (ushort)connectInfo.Port;
+            ipPort._ip = await HathoraUtils.ConvertHostToIpAddress(connectInfo.Host);
+            ipPort._port = (ushort)connectInfo.Port;
 
             return ipPort;
         }
@@ -71,10 +72,11 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
             ActiveRoomsForProcess?.FirstOrDefault();
         
         /// <summary>Checks for (Process, Room and Lobby) != null.</summary>
+        /// <param name="_expectingLobby">Should we expect a Lobby in this Process?</param>
         /// <returns>isValid</returns>
-        public bool CheckIsValid() => 
+        public bool CheckIsValid(bool _expectingLobby) => 
             ProcessInfo != null && 
-            Lobby != null && 
+            (!_expectingLobby || Lobby != null) && 
             FirstActiveRoomForProcess != null;
 
         /// <summary>

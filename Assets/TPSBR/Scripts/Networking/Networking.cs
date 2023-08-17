@@ -673,7 +673,8 @@ namespace TPSBR
 			
 			HathoraGetDeployInfoResult deployInfo = await HathoraServerMgr.Singleton.ServerGetDeployedInfoAsync();
 			Assert.IsNotNull(deployInfo, $"{errLogPrefix} Expected deployInfo");
-			Assert.IsTrue(deployInfo.CheckIsValid(), $"{errLogPrefix} Expected deployInfo.CheckIsValid()");
+			Assert.IsTrue(deployInfo.CheckIsValid(_expectingLobby: true), 
+                $"{errLogPrefix} Expected deployInfo.CheckIsValid(expectingLobby)");
 				
 			SessionRequest sessionReq = deployInfo.GetLobbyInitConfig<SessionRequest>(); // ByVal
 			Assert.IsTrue(sessionReq.MaxPlayers > 0, $"{errLogPrefix} Expected sessionReq.MaxPlayers > 0");
@@ -761,12 +762,12 @@ namespace TPSBR
 			StartGameArgsContainer _startGameArgsContainer)
 		{
 			// Get info from hathoraDeployInfo cache
-			(IPAddress ip, ushort port) connectInfo = await hathoraDeployInfo.GetHathoraServerIpPortAsync();
-            Log($"[setCustomPublicAddress] ip:port == `{connectInfo.ip}:{connectInfo.port}`");
+			(IPAddress _ip, ushort _port) connectInfo = await hathoraDeployInfo.GetHathoraServerIpPortAsync();
+            Log($"[setCustomPublicAddress] ip:port == `{connectInfo._ip}:{connectInfo._port}`");
 
-			_startGameArgsContainer.StartGameArgs.CustomPublicAddress = connectInfo.ip == null
-				? NetAddress.Any(connectInfo.port)
-				: NetAddress.CreateFromIpPort(connectInfo.ip.ToString(), connectInfo.port);
+			_startGameArgsContainer.StartGameArgs.CustomPublicAddress = connectInfo._ip == null
+				? NetAddress.Any(connectInfo._port)
+				: NetAddress.CreateFromIpPort(connectInfo._ip.ToString(), connectInfo._port);
 		}
 		#endregion // Hathora Utils
 		
