@@ -6,6 +6,7 @@ using Fusion;
 using Fusion.Photon.Realtime;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Common.Extensions;
+using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Newtonsoft.Json;
 using TMPro;
 using TPSBR;
@@ -87,6 +88,12 @@ namespace HathoraPhoton
             Debug.Log($"{logPrefix} (as Photon 'Host')");
         
             // Ensure authed; already via HathoraPhotonClientMgr.Awake()
+            if (clientMgr == null)
+            {
+                Debug.LogError($"[HathoraMatchmaking.{nameof(createHathoraSessionAsync)}]: " +
+                    $"!clientMgr -> Do you have a hathoraPhotonClientMgr component added to HathoraManager gameObj?");   
+            }
+
             if (!clientMgr.HathoraClientSession.IsAuthed)
             {
                 Debug.Log($"{logPrefix} !IsAuthed");
@@ -120,11 +127,14 @@ namespace HathoraPhoton
         {
             Debug.Log($"[HathoraMatchmaking] onCreateLobbySuccessUI");
 
+            // Prepare data for UI
             string friendlyHathoraRegion = _lobby.Region.ToString().SplitPascalCase();
-            hathoraCreateDoneStatusTxt.text = $"Created Lobby: {_lobby.RoomId} ({friendlyHathoraRegion})";
+            SessionRequest lobbyInitConfig = HathoraUtils.GetLobbyInitConfig<SessionRequest>(_lobby);
+            
+            // Set UI vals -> Set visible
+            hathoraCreateDoneStatusTxt.text = $"Created Lobby: {lobbyInitConfig.DisplayName} ({friendlyHathoraRegion})";
             hathoraCreateDoneStatusTxt.gameObject.SetActive(true);
             createSettingsModalPnl.SetActive(false);
-            
             toggleCreateUi(_isCreating: false);
         }
 
@@ -138,15 +148,20 @@ namespace HathoraPhoton
         /// <returns></returns>
         private async Task<Lobby> photonHostCreateHathoraLobbyAsync(SessionRequest _request)
         {
-            _request.UserID      = Context.PlayerData.UserID;
-            _request.CustomLobby = GetLobbyName();
-        
             // Get the selected Photon Region -> Map to closest Hathora Region
             // "Any" region falls back to WashingtonDC
             string photonRegionStr =  base.GetCurrentRegion(); // From top-left dropdown in `Menu` scene
             HathoraRegion hathoraRegion = HathoraRegionMap.GetHathoraRegionEnumFromPhoton(
                 photonRegionStr); // alt: getHathoraRegionFromPhoton()
             
+            // Copy over some Photon base request SessionRequest sets (from Matchmaking.cs)
+            _request.UserID = Context.PlayerData.UserID;
+            _request.CustomLobby = GetLobbyName();
+            
+            // Originally "Host"; now "Server" since Hathora (not us) will handle this
+            _request.GameMode = GameMode.Server;
+            
+            // We'll later deserialize this into a SessionRequest @ Networking.cs (StartGame)
             string initConfigJsonStr = JsonConvert.SerializeObject(_request);
 
             Lobby lobby = await clientMgr.CreateLobbyAsync(

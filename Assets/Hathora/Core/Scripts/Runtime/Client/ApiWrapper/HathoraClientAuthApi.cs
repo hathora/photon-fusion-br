@@ -21,7 +21,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
     /// * Does not handle UI (see HathoraClientMgrUi).
     /// * Does not handle Session caching (see HathoraClientSession).
     /// </summary>
-    public class HathoraNetClientAuthApi : HathoraNetClientApiWrapperBase
+    public class HathoraClientAuthApi : HathoraClientApiWrapperBase
     {
         private AuthV1Api authApi;
 
@@ -59,7 +59,7 @@ namespace Hathora.Core.Scripts.Runtime.Client.ApiWrapper
             catch (ApiException apiException)
             {
                 HandleApiException(
-                    nameof(HathoraNetClientAuthApi),
+                    nameof(HathoraClientAuthApi),
                     nameof(ClientAuthAsync), 
                     apiException);
                 return null;

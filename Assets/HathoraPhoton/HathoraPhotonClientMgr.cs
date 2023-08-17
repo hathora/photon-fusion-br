@@ -20,13 +20,16 @@ namespace HathoraPhoton
         {
             base.OnStart();
             
-#if !UNITY_SERVER
+#if UNITY_EDITOR || !UNITY_SERVER
+            // We should only auto-login if we're not a standalone server
             _ = ConnectAsClient(); // Login passively; !await
-#endif // !UNITY_SERVER
+#endif
         }
 
         public override async Task<bool> ConnectAsClient()
         {
+            Debug.Log("[HathoraPhotonClientMgr] ConnectAsClient");
+            
             AuthResult authResult = await ClientApis.ClientAuthApi.ClientAuthAsync();
             HathoraClientSession.InitNetSession(authResult?.PlayerAuthToken);
             

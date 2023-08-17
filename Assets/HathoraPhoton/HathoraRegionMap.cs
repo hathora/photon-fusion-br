@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hathora.Core.Scripts.Runtime.Common.Extensions;
-using TPSBR;
 using UnityEngine;
 using HathoraRegion = Hathora.Cloud.Sdk.Model.Region;
 

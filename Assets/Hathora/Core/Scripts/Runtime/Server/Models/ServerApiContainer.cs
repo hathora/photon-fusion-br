@@ -2,13 +2,12 @@
 
 using System;
 using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
-using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Hathora.Core.Scripts.Runtime.Server.Models
 {
     /// <summary>
-    /// Server [runtime] API wrapper container to serialize in HathoraPlayer.
+    /// Server [runtime] API wrapper container. Unlike Clients, we init these
+    /// with a new() constructor since they don't inherit from Mono
     /// 
     /// -> Have a new Hathora API to add?
     /// 1. Serialize it here, and add to `HathoraClientMgrBase.InitApis()`
@@ -19,11 +18,10 @@ namespace Hathora.Core.Scripts.Runtime.Server.Models
     [Serializable]
     public struct ServerApiContainer
     {
-        [FormerlySerializedAs("serverProcessApiWrapper")]
-        [FormerlySerializedAs("_serverProcessApi")]
-        [Header("Hathora Server [runtime] API wrappers")]
-        [SerializeField]
-        private HathoraServerProcessApi serverProcessApi;
-        public HathoraServerProcessApi ServerProcessApi => serverProcessApi;
+        public HathoraServerAppApi ServerAppApi { get; set; }
+        // public HathoraServerBuildApi ServerBuildApi { get; set; } // Not generally intended for runtime use
+        public HathoraServerLobbyApi ServerLobbyApi { get;set; }
+        public HathoraServerProcessApi ServerProcessApi { get; set; }
+        public HathoraServerRoomApi ServerRoomApi { get; set; }
     }
 }

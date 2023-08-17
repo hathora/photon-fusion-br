@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +15,12 @@ using Fusion;
 using Fusion.Photon.Realtime;
 using Fusion.Plugin;
 using Fusion.Sockets;
+using Hathora.Cloud.Sdk.Api;
 using Hathora.Cloud.Sdk.Model;
 using Hathora.Core.Scripts.Runtime.Common.Utils;
 using Hathora.Core.Scripts.Runtime.Server;
 using Hathora.Core.Scripts.Runtime.Server.ApiWrapper;
+using Hathora.Core.Scripts.Runtime.Server.Models;
 using HathoraPhoton;
 using Application = UnityEngine.Application;
 using Assert = UnityEngine.Assertions.Assert;
@@ -46,17 +49,12 @@ namespace TPSBR
 	// functionality and directly starting via NetworkRunner) for your game unless such functionality is needed.
 	public class Networking : MonoBehaviour
 	{
-		// HATHORA
+		private HathoraGetDeployInfoResult hathoraDeployInfo;
+		
 		private static HathoraServerConfig hathoraServerConfig => 
-			Global.Settings.HathoraServerConfig;
-
-		/// <summary>Useful for local testing or within the editor</summary>
-		private const bool USE_MOCK_HATHORA_PROCESS_ID = false;
-
-		/// <summary>
-		/// Create a Room (5m ttl) -> manually toss the processId here -> set USE_MOCK_HATHORA_PROCESS_ID
-		/// </summary>
-		private const string MOCK_HATHORA_PROCESS_ID = "eb4b7dc9-9c9e-4967-bf6e-d22f13b23455";
+			HathoraServerMgr.Singleton != null
+				? HathoraServerMgr.Singleton.HathoraServerConfig
+				: null; 
 
         public static HathoraRegion HATHORA_FALLBACK_REGION => Region.WashingtonDC;
 
@@ -101,8 +99,29 @@ namespace TPSBR
 
 		// PUBLIC METHODS
 
-		public void StartGame(SessionRequest request)
+		public async void StartGame(SessionRequest request)
 		{
+			#region Hathora
+			// #######################################################################
+			// Call this early before we create a new Photon `Session` below,
+			// (!) We'll replace `request` with the Hathora Lobby `InitConfig`.
+			//   If we don't do this, the default CLI `-args` will be set.
+			//   Eg: Scene name, lobby name, max players, [...] will all be the same.
+			// #######################################################################
+			if (request.GameMode is GameMode.Server)
+			{
+				StatusDescription = "Discovering Hathora Lobby (as Server)";
+				
+				// Cache the Process, Room and Lobby info => replace the Photon SessionRequest
+				this.hathoraDeployInfo = await hathoraServerGetRoomLobbyInfo();
+				
+				// Earlier, we serialized the SessionRequest @ HathoraMatchmaking.cs (photonHostCreateHathoraLobbyAsync)
+				// If we don't replace the request, Photon lobby will show the default -args we provided (maxPlayers, lobbyName)
+				request = hathoraDeployInfo.GetLobbyInitConfig<SessionRequest>();
+			}
+			#endregion // Hathora
+			
+			
 			var session = new Session();
 
 			if (request.ExtraPeers > 0 && NetworkProjectConfig.Global.PeerMode == NetworkProjectConfig.PeerModes.Single)
@@ -343,34 +362,37 @@ namespace TPSBR
 			if (peer.Request.MaxPlayers > 0)
 				startGameArgs.PlayerCount = peer.Request.MaxPlayers;
 
-            if (peer.GameMode is GameMode.Host or GameMode.Server)
-            {
-                // If Host, essentially treat it as a Client for Hathora purposes
-                // Eg: "Create" should go through Lobby with client auth token
-                startGameArgs.SessionProperties = CreateSessionProperties(peer.Request);
-            }
-            
-            
+
             #region Hathora
             // ################################################################################################
             switch (peer.GameMode)
             {
                 case GameMode.Server:
                 {
-	                StatusDescription = "Creating Hathora Room (as Server)";
-                    StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
-                    yield return new HathoraTaskUtils.WaitForTaskCompletion(
-                        hathoraServerGetIpAsync(startGameArgsByRef));
-                    
-                    startGameArgs = startGameArgsByRef.StartGameArgs;
-                    break;
+	                StatusDescription = "Connecting to Hathora (as Server)";
+	                
+	                if (hathoraDeployInfo is { HasPort: true })
+	                {
+		                // Set the Photon SessionProperties (maps to Hathora Lobby InitConfig)
+		                startGameArgs.SessionProperties = CreateSessionProperties(peer.Request);
+		                
+		                // Pass StartGameArgs in a ByRef container, then set the updated changes
+		                StartGameArgsContainer startGameArgsByRef = new(startGameArgs);
+		                
+		                yield return new HathoraTaskUtils.WaitForTaskCompletion(
+			                setCustomHathoraServerPublicAddressFromCached(startGameArgsByRef));
+		                
+		                startGameArgs = startGameArgsByRef.StartGameArgs;
+	                }
+	                
+	                break;
                 }
                 
                 case GameMode.Host:
                 {
 	                StatusDescription = "Connecting to Hathora (as Host)";
-	                throw new NotImplementedException("Host should have been handled " +
-		                "at HathoraMatchmaking.cs, then changed to a Client (or hid the 'Create' UI)");
+	                throw new NotImplementedException("[Networking.ConnectPeerCoroutine] `Host` should have been handled " +
+		                "at HathoraMatchmaking.cs - theoretically, this should never trigger.");
                 }
 
                 case GameMode.Client:
@@ -637,102 +659,35 @@ namespace TPSBR
 			Log($"ConnectPeerCoroutine() finished");
 		}
 
-		/// <summary>Game started as a Photon "Host": We'll create a Lobby as a Client</summary>
-        /// <param name="_startGameArgsByRef">Wrapped the Struct in a Class for ByRef while async</param>
-        private async Task connectHathoraHostAsync(StartGameArgsContainer _startGameArgsByRef)
-        {
-	        Log(nameof(connectHathoraHostAsync));
-	        string logPefix = $"[Networking.{nameof(connectHathoraHostAsync)}]";
+		/// <summary>Sets hathoraDeployInfo</summary>
+		private async Task<HathoraGetDeployInfoResult> hathoraServerGetRoomLobbyInfo()
+		{
+			string errLogPrefix = $"[Networking.{nameof(hathoraServerGetRoomLobbyInfo)}]"; 
+			Log(nameof(hathoraServerGetRoomLobbyInfo));
+			
+			if (HathoraServerMgr.Singleton == null)
+			{
+				throw new NullReferenceException($"!{nameof(HathoraServerMgr)} - " +
+					"Did you serialize this as a component to HathoraManager");
+			}
+			
+			HathoraGetDeployInfoResult deployInfo = await HathoraServerMgr.Singleton.ServerGetDeployedInfoAsync();
+			Assert.IsNotNull(deployInfo, $"{errLogPrefix} Expected deployInfo");
+			Assert.IsTrue(deployInfo.CheckIsValid(_expectingLobby: true), 
+                $"{errLogPrefix} Expected deployInfo.CheckIsValid(expectingLobby)");
+				
+			SessionRequest sessionReq = deployInfo.GetLobbyInitConfig<SessionRequest>(); // ByVal
+			Assert.IsTrue(sessionReq.MaxPlayers > 0, $"{errLogPrefix} Expected sessionReq.MaxPlayers > 0");
 
-	        HathoraPhotonClientMgr clientMgr = HathoraPhotonClientMgr.Singleton;
-	        
-	        // We should already be logged in from Start() @ Menu via HathoraManager prefab
-	        Assert.IsTrue(clientMgr.HathoraClientSession.IsAuthed, "!IsAuthed");
+			return deployInfo;
+		}
 
-	        // ----------------------------------
-	        // // == Auth =>
-	        // 
-            // bool isSuccess = false;
-            // try
-            // {
-            //     isSuccess = await hathoraPhotonClientMgr.ConnectAsClient();
-            // }
-            // catch (Exception e)
-            // {
-            //     Debug.LogError($"{logPefix} {nameof(hathoraPhotonClientMgr.ConnectAsClient)} " +
-	        //         $"=> failed: {e.Message}");
-            //     throw;
-            // }
-            // 
-            // Assert.IsTrue(isSuccess, "!IsAuthed");
-            // if (_startGameArgsByRef.StartGameArgs.GameMode is not GameMode.Host)
-	        //     return;
-            
-            // ----------------------------------
-            // Host Create Lobby =>
-            
-            // Get the selected Photon Region -> Map to closest Hathora Region
-            HathoraRegion hathoraRegion = getHathoraRegionFromPhoton();
-            // string initConfigJsonStr = JsonConvert.SerializeObject(someStatefulConfig); // TODO
-
-            Lobby lobby = null;
-            try
-            {
-	            lobby = await clientMgr.CreateLobbyAsync(hathoraRegion); // public visibility
-            }
-            catch (Exception e)
-            {
-	            Debug.LogError($"Error: {e}");
-	            throw;
-            }
-            
-            Assert.IsNotNull(lobby?.RoomId, "!lobby.RoomId");
-
-            // ----------------------------------
-            // Host get connection info (ip:port) from Lobby roomId  =>
-            ConnectionInfoV2 connectionInfo = null;
-            try
-            {
-	            connectionInfo = await clientMgr.GetActiveConnectionInfo(lobby.RoomId);
-            }
-            catch (Exception e)
-            {
-	            Debug.LogError($"{logPefix} {nameof(clientMgr.GetActiveConnectionInfo)} " +
-		            $"=> failed: {e.Message}");	            
-	            throw;
-            }
-            
-            Assert.IsTrue(connectionInfo?.ExposedPort?.Port > 0, 
-	            "!ConnectionInfo.ExposedPort.Port");
-
-            // ----------------------------------
-            // We now [should] have host:port. 1st, convert host to IP
-            IPAddress ip = await HathoraUtils.ConvertHostToIpAddress(connectionInfo.ExposedPort.Host);
-            ushort port = (ushort)connectionInfo.ExposedPort.Port;
-            
-            serverSetCustomPublicAddress(
-	            ip, 
-	            port,
-	            _startGameArgsByRef); // validates + logs
-        }
-        
-        private HathoraRegion getHathoraRegionFromPhoton()
-        {
-            string photonRegionStr = PhotonAppSettings.Instance.AppSettings.FixedRegion;
-            bool hasPhotonRegionStr = !string.IsNullOrEmpty(photonRegionStr);
-
-            HathoraRegion hathoraRegion = hasPhotonRegionStr
-                ? (HathoraRegion)HathoraRegionMap.GetHathoraRegionIndexFromPhoton(photonRegionStr)
-                : HATHORA_FALLBACK_REGION;
-
-            return hathoraRegion;
-        }
-
-        /// <summary>TODO: Throw this in a Hathora server script</summary>
-        /// <param name="_startGameArgsContainer">ByRef</param>
+		/// <summary>
+        /// Gets the ip:server from Hathora server `Process` API wrapper.
+        /// - On succcess, sets _startGameArgsByRef.
+        /// </summary>
         /// <returns>ByRef changes in _startGameArgsContainer</returns>
-        private async Task<(IPAddress ip, ushort port)> hathoraServerGetIpAsync(
-            StartGameArgsContainer _startGameArgsContainer)
+        private async Task<(IPAddress ip, ushort port)> hathoraServerGetIpAsync()
         {
 	        Log(nameof(hathoraServerGetIpAsync));
 	        
@@ -766,15 +721,6 @@ namespace TPSBR
                 throw;
             }
 
-            // We [should] now have ip:port from Hathora Process
-            if (ipPort.port > 0)
-            {
-                serverSetCustomPublicAddress(
-                    ipPort.ip, 
-                    ipPort.port, 
-                    _startGameArgsContainer); // validates + logs    
-            }
-
             return ipPort;
         }
 
@@ -786,137 +732,42 @@ namespace TPSBR
 		/// <returns></returns>
 		private async Task<(IPAddress ip, ushort port)> GetHathoraServerIpPortAsync()
 		{
-			// Mock it, or get the actual env var?
-			string HATHORA_PROCESS_ID = USE_MOCK_HATHORA_PROCESS_ID && !string.IsNullOrEmpty(MOCK_HATHORA_PROCESS_ID)
-				? MOCK_HATHORA_PROCESS_ID
-				: Environment.GetEnvironmentVariable("HATHORA_PROCESS_ID");
-			
-			if (USE_MOCK_HATHORA_PROCESS_ID)
-				Log("[GetHathoraServerIpPortAsync] <color=yellow>(!) USE_MOCK_HATHORA_PROCESS_ID</color>");
-			
-			Log($"[ConnectPeerCoroutine.GetHathoraServerIpPortAsync] " +
-                $"HATHORA_PROCESS_ID: {HATHORA_PROCESS_ID}");
-			bool hasHathoraProcId = !string.IsNullOrEmpty(HATHORA_PROCESS_ID);
+			string logPrefix = $"[Networking.{nameof(GetHathoraServerIpPortAsync)}]";
+			(IPAddress ip, ushort port) ipPort = default;
 
-            (IPAddress ip, ushort port) processIpPort = default;
-
-            if (!hasHathoraProcId)
-                return processIpPort; // failed, but done
-            
-            // -----------------------------------------------------
-            // Get ip:port from Hathora ProcessId; OR local fallback
-			try
-			{
-				processIpPort = await hathoraServerGetProcessAsync(HATHORA_PROCESS_ID);
-			}
-			catch (Exception e)
-			{
-				Debug.LogError("[initServerSetPublicAddress] GetHathoraServerIpPortAsync " +
-                    $"=> Error: {e}");
-				throw;
-			}
-
-			// Done
-            processIpPort.ip = processIpPort.ip;
-            processIpPort.port = processIpPort.port;
-			
-			return processIpPort;
-		}
-
-		private void serverSetCustomPublicAddress(
-			string _host,
-			ushort _port,
-			StartGameArgsContainer _startGameArgsContainer)
-		{
-			
-		}
-
-        /// <summary>Validates -> logs -> sets ip:port</summary>
-        /// <param name="_ip"></param>
-        /// <param name="_port"></param>
-        /// <param name="_startGameArgsContainer">Passed ByRef to set `CustomPublicAddress`</param>
-        private void serverSetCustomPublicAddress(
-			IPAddress _ip,
-			ushort _port,
-			StartGameArgsContainer _startGameArgsContainer)
-		{
-            Log($"[setCustomPublicAddress] ip:port == `{_ip}:{_port}`");
-
-			_startGameArgsContainer.StartGameArgs.CustomPublicAddress = _ip == null
-				? NetAddress.Any(_port)
-				: NetAddress.CreateFromIpPort(_ip.ToString(), _port);
-		}
-
-		/// <summary>Hathora local testing util, if launched with CLI -args or with env vars set</summary>
-		[Obsolete("Possibly unnecesssary due to Photon's Discovery protocols")]
-		private (IPAddress ip, ushort port) getIpPortFromEnvVars()
-		{
-			// Get env vars
-			Log("getIpPortFromEnvVars");
-			string LOCAL_SERVER_IP = Environment.GetEnvironmentVariable(nameof(LOCAL_SERVER_IP))?.Trim();
-			string SERVER_PORT = Environment.GetEnvironmentVariable(nameof(SERVER_PORT))?.Trim();
-
-			// Validate exists
-			if (string.IsNullOrEmpty(LOCAL_SERVER_IP))
-				return default;
-
-			if (string.IsNullOrEmpty(SERVER_PORT))
-				return default;
-
-			// Parse string to the return val types
-			ushort.TryParse(SERVER_PORT, out ushort ipUint);
-			IPAddress ipAddress = IPAddress.Parse(LOCAL_SERVER_IP);
-
-			return (ipAddress, ipUint);
-		}
-
-		/// <summary>Validates -> Gets hathora Process async; converts host name to IP</summary>
-		/// <param name="_hathoraProcessId"></param>
-		/// <param name="_cancelToken"></param>
-		/// <returns>(IPAddress ip, ushort port) named Tuple</returns>
-		private async Task<(IPAddress ip, ushort port)> hathoraServerGetProcessAsync(
-			string _hathoraProcessId,
-			CancellationToken _cancelToken = default)
-		{
-			string logPrefix = $"[Networking.{nameof(hathoraServerGetProcessAsync)}]";
-
-			// Validate Hathora Server Config + Auth Token
-			if (hathoraServerConfig == null)
-				throw new NullReferenceException($"{logPrefix} !hathoraServerConfig: Serialize it @ GlobalSettings.cs");
-			
-			if (!hathoraServerConfig.HathoraCoreOpts.DevAuthOpts.HasAuthToken)
-			{
-				throw new NullReferenceException($"{logPrefix} !hathoraServerConfig.HathoraCoreOpts" +
-					".DevAuthOpts.HasAuthToken: Ensure you are authenticated to Hathora via HathoraServerConfig file " +
-					"(find via top menu: `Hathora/ServerConfigFinder`)");
-			}
-			
-			// Set ip:port via Hathora API's procId >>
-			HathoraServerProcessApi processApi = new(hathoraServerConfig);
-
-			// Normally this is an `await`, but we're inside a coroutine =>
 			Process process = null;
 			try
 			{
-				process = await processApi.GetProcessInfoAsync(
-					_hathoraProcessId,
-					_cancelToken: _cancelToken);
+				process = await HathoraServerMgr.Singleton.GetCachedHathoraProcessAsync();
 			}
 			catch (Exception e)
 			{
-				Debug.LogError($"{logPrefix} GetProcessInfoAsync => Error: {e}");
-				throw;
+				Debug.LogError($"{logPrefix} GetCachedSystemHathoraProcess => Error: {e.Message}");
+				return ipPort;
 			}
 			
 			Assert.IsNotNull(process?.ExposedPort?.Host, $"{logPrefix} Expected `process.ExposedPort.Host`");
 			Assert.IsTrue(process?.ExposedPort?.Port > 0, $"{logPrefix} Expected `process.ExposedPort.Port > 0`");
 				
 			// Get the IP address from the host name; this can return > 1, but we just want 1st
-			(IPAddress ip, ushort port) ipPort;
 			ipPort.ip = await HathoraUtils.ConvertHostToIpAddress(process.ExposedPort.Host);
 			ipPort.port = (ushort)process.ExposedPort.Port;
-
+			
 			return ipPort;
+		}
+
+		/// <summary>Validates -> logs -> sets ip:port from cached vals</summary>
+		/// <param name="_startGameArgsContainer">Passed ByRef to set `CustomPublicAddress`</param>
+		private async Task setCustomHathoraServerPublicAddressFromCached(
+			StartGameArgsContainer _startGameArgsContainer)
+		{
+			// Get info from hathoraDeployInfo cache
+			(IPAddress _ip, ushort _port) connectInfo = await hathoraDeployInfo.GetHathoraServerIpPortAsync();
+            Log($"[setCustomPublicAddress] ip:port == `{connectInfo._ip}:{connectInfo._port}`");
+
+			_startGameArgsContainer.StartGameArgs.CustomPublicAddress = connectInfo._ip == null
+				? NetAddress.Any(connectInfo._port)
+				: NetAddress.CreateFromIpPort(connectInfo._ip.ToString(), connectInfo._port);
 		}
 		#endregion // Hathora Utils
 		

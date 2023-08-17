@@ -73,15 +73,5 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             return getProcessInfoResult;
         }
         #endregion // Server Process Async Hathora SDK Calls
-
-
-        public override void Init(
-            HathoraServerConfig _hathoraServerConfig, 
-            Configuration _hathoraSdkConfig = null)
-        {
-            Debug.Log("[HathoraServerProcessApi] Initializing API...");
-            base.Init(_hathoraServerConfig, _hathoraSdkConfig);
-            this.processesApi = new ProcessesV1Api(base.HathoraSdkConfig);
-        }
     }
 }

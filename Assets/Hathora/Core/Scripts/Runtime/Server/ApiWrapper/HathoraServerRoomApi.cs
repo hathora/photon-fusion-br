@@ -1,6 +1,7 @@
 // Created by dylan@hathora.dev
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Hathora.Cloud.Sdk.Api;
@@ -89,7 +90,7 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
             }
             catch (Exception e)
             {
-                Debug.LogError($"[HathoraServerRoomApi.CreateRoomAwaitActiveAsync] " +
+                Debug.LogError("[HathoraServerRoomApi.CreateRoomAwaitActiveAsync] " +
                     $"Error => PollConnectionInfoUntilActiveAsync: {e.Message} " +
                     "(Check console.hathora.dev logs for +info)");
                 throw;
@@ -227,6 +228,58 @@ namespace Hathora.Core.Scripts.Runtime.Server.ApiWrapper
                 $"<color=yellow>getRoomInfoResult: {getRoomInfoResult.ToJson()}</color>");
 
             return getRoomInfoResult;
+        }
+        
+        /// <summary>
+        /// Get all active rooms for a given process using `appId + `processId`.
+        /// API Doc | https://hathora.dev/api#tag/RoomV2/operation/GetActiveRoomsForProcess 
+        /// </summary>
+        /// <param name="_processId">
+        /// System generated unique identifier to a runtime instance of your game server.
+        /// Example: "cbfcddd2-0006-43ae-996c-995fff7bed2e"
+        /// </param>
+        /// <param name="_cancelToken"></param>
+        /// <returns></returns>
+        public async Task<List<PickRoomExcludeKeyofRoomAllocations>> GetActiveRoomsForProcessAsync(
+            string _processId, 
+            CancellationToken _cancelToken = default)
+        {
+            string logPrefix = $"[HathoraServerRoomApi].{nameof(GetActiveRoomsForProcessAsync)}]";
+            List<PickRoomExcludeKeyofRoomAllocations> getActiveRoomsResultList = null;
+
+            try
+            {
+                getActiveRoomsResultList = await roomApi.GetActiveRoomsForProcessAsync(
+                    AppId,
+                    _processId,
+                    _cancelToken);
+            }
+            catch (TaskCanceledException)
+            {
+                // The user explicitly cancelled, or the Task timed out
+                Debug.Log($"{logPrefix} Task cancelled");
+                return null;
+            }
+            catch (ApiException apiErr)
+            {
+                // HTTP err from Hathora Cloud
+                HandleApiException(
+                    nameof(HathoraServerRoomApi),
+                    nameof(GetRoomInfoAsync), 
+                    apiErr);
+                return null;
+            }
+
+            Debug.Log($"{logPrefix} Success: <color=yellow>" +
+                $"getActiveRoomsResultList count: {getActiveRoomsResultList.Count}</color>");
+
+            if (getActiveRoomsResultList.Count > 0)
+            {
+                Debug.Log($"{logPrefix} Success: <color=yellow>" +
+                    $"getActiveRoomsResultList[0]: {getActiveRoomsResultList[0].ToJson()}</color>");
+            }
+
+            return getActiveRoomsResultList;
         }
 
         /// <summary>

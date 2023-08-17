@@ -23,19 +23,19 @@ namespace Hathora.Demos.Shared.Scripts.Client.Models
         [Header("Hathora Client API wrappers")]
         [FormerlySerializedAs("authApi")]
         [SerializeField]
-        private HathoraNetClientAuthApi clientAuthApi;
-        public HathoraNetClientAuthApi ClientAuthApi => clientAuthApi;
+        private HathoraClientAuthApi clientAuthApi;
+        public HathoraClientAuthApi ClientAuthApi => clientAuthApi;
         
         [FormerlySerializedAs("clientLobbyApiWrapper")]
         [FormerlySerializedAs("lobbyApi")]
         [SerializeField]
-        private HathoraNetClientLobbyApi clientLobbyApi;
-        public HathoraNetClientLobbyApi ClientLobbyApi => clientLobbyApi;
+        private HathoraClientLobbyApi clientLobbyApi;
+        public HathoraClientLobbyApi ClientLobbyApi => clientLobbyApi;
 
         [FormerlySerializedAs("clientRoomApiWrapper")]
         [FormerlySerializedAs("roomApi")]
         [SerializeField]
-        private HathoraNetClientRoomApi clientRoomApi;
-        public HathoraNetClientRoomApi ClientRoomApi => clientRoomApi;
+        private HathoraClientRoomApi clientRoomApi;
+        public HathoraClientRoomApi ClientRoomApi => clientRoomApi;
     }
 }
